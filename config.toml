@@ -1,0 +1,19 @@
+[host]
+bind = "127.0.0.1:8080"
+
+[host.cookie]
+key = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=" # base64 encoded key
+domain = "127.0.0.1:8080"
+name = "session" # (optianl) default to be "session"
+path = "/" # (optianl) default to be "/"
+secure = false # (optianl) default to be true, set to false for development
+
+[database]
+username = "postgres"
+password = "postgres"
+host = "localhost"
+database = "vtuber"
+
+[hcaptcha]
+site-key = "ea493510-305c-47a7-b086-eb93b57180fa" # sample site-key
+secret = "0x91FE5476cDeaF998c2f6a7e35923c6c62f9F9950" # sample secret

@@ -1,0 +1,19 @@
+[package]
+name = "vtuber-quiz"
+version = "0.1.0"
+authors = ["lightsing <light.tsing@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+actix-session = { git = "https://github.com/nhruo123/actix-extras.git", branch = "beta-6-patch" }
+actix-web = { version = "4.0.0-beta.6", features = [ "secure-cookies" ] }
+anyhow = "1.0"
+base64 = "0.13"
+dotenv = "0.15"
+hcaptcha = "1.0"
+log = "0.4"
+pretty_env_logger = "0.4"
+serde = "1.0"
+sqlx = { version = "0.5", features = [ "postgres", "runtime-tokio-rustls" ] }
+thiserror = "1.0"
+toml = "0.5"
