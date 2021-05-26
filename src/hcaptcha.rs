@@ -9,6 +9,7 @@ use actix_web::dev::Payload;
 use actix_web::error;
 use actix_web::http::{header, StatusCode};
 use actix_web::{FromRequest, HttpRequest};
+use actix_web::web::Data;
 
 pub struct Hcaptcha {
     _private: (),
@@ -30,6 +31,9 @@ impl FromRequest for Hcaptcha {
     type Future = Pin<Box<dyn Future<Output = Result<Self, Self::Error>>>>;
 
     fn from_request(req: &HttpRequest, _payload: &mut Payload) -> Self::Future {
+        if cfg!(feature = "bypass-hcaptcha") {
+            return Box::pin(async { Ok(Hcaptcha { _private: () }) })
+        }
         let response: Option<&str> = req
             .headers()
             .get("X-HCAPTCHA-KEY")
@@ -41,7 +45,7 @@ impl FromRequest for Hcaptcha {
         if user_ip.is_err() {
             return Box::pin(async { Err(HcaptchaError::InsufficientInformation) });
         }
-        let config = req.app_data::<crate::config::HCaptcha>().unwrap();
+        let config = req.app_data::<Data<crate::config::HCaptcha>>().unwrap();
         let mut hc = hcaptcha::Hcaptcha::new(config.secret.as_str(), response.unwrap())
             .set_site_key(config.site_key.as_str())
             .set_user_ip(&user_ip.unwrap());

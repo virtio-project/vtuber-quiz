@@ -5,16 +5,17 @@ use std::borrow::Borrow;
 use actix_web::middleware::Logger;
 use actix_web::{App, HttpServer, web};
 use actix_session::CookieSession;
-use sqlx::{Postgres, Pool};
+use sqlx::Postgres;
 use sqlx::postgres::PgPoolOptions;
 
 mod config;
-mod service;
+mod services;
 mod models;
 mod error;
 mod hcaptcha;
 
 use crate::config::Config;
+type Pool = sqlx::Pool<Postgres>;
 
 #[actix_web::main]
 async fn main() -> anyhow::Result<()> {
@@ -35,6 +36,7 @@ async fn main() -> anyhow::Result<()> {
             .data(pool.clone())
             .service(
                 web::scope("/api")
+                    .service(services::register)
             )
     })
     .bind(&config.host.bind)?
