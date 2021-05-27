@@ -11,6 +11,8 @@ use actix_web::http::{header, StatusCode};
 use actix_web::{FromRequest, HttpRequest};
 use actix_web::web::Data;
 
+use crate::error::Error;
+
 pub struct Hcaptcha {
     _private: (),
 }
@@ -27,7 +29,7 @@ pub enum HcaptchaError {
 
 impl FromRequest for Hcaptcha {
     type Config = ();
-    type Error = HcaptchaError;
+    type Error = Error;
     type Future = Pin<Box<dyn Future<Output = Result<Self, Self::Error>>>>;
 
     fn from_request(req: &HttpRequest, _payload: &mut Payload) -> Self::Future {
@@ -39,11 +41,11 @@ impl FromRequest for Hcaptcha {
             .get("X-HCAPTCHA-KEY")
             .and_then(|key| key.to_str().ok());
         if response.is_none() {
-            return Box::pin(async { Err(HcaptchaError::Missing) });
+            return Box::pin(async { Err(HcaptchaError::Missing.into()) });
         }
         let user_ip = IpAddr::from_str(req.connection_info().realip_remote_addr().unwrap());
         if user_ip.is_err() {
-            return Box::pin(async { Err(HcaptchaError::InsufficientInformation) });
+            return Box::pin(async { Err(HcaptchaError::InsufficientInformation.into()) });
         }
         let config = req.app_data::<Data<crate::config::HCaptcha>>().unwrap();
         let mut hc = hcaptcha::Hcaptcha::new(config.secret.as_str(), response.unwrap())
@@ -55,23 +57,8 @@ impl FromRequest for Hcaptcha {
                 .map(|_| Hcaptcha { _private: () })
                 .map_err(|e| {
                     error!("Hcaptcha failed: {:?}", e);
-                    HcaptchaError::Invalid
+                    HcaptchaError::Invalid.into()
                 })
         })
-    }
-}
-
-impl error::ResponseError for HcaptchaError {
-    fn status_code(&self) -> StatusCode {
-        StatusCode::FORBIDDEN
-    }
-
-    fn error_response(&self) -> Response<Body> {
-        let mut resp = Response::new(self.status_code());
-        resp.headers_mut().insert(
-            header::CONTENT_TYPE,
-            header::HeaderValue::from_static("application/json"),
-        );
-        resp.set_body(Body::from(format!("{{\"err\": \"{}\"}}", self)))
     }
 }

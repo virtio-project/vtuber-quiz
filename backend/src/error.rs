@@ -5,29 +5,34 @@ use actix_web::http::{StatusCode, header};
 use serde::Serialize;
 
 use Error::*;
+use std::borrow::Borrow;
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
     #[error(transparent)]
-    Sqlx(#[from] sqlx::Error)
+    Sqlx(#[from] sqlx::Error),
+    #[error(transparent)]
+    Hcaptcha(#[from] crate::hcaptcha::HcaptchaError),
 }
 
-#[derive(Copy, Clone, Debug, Serialize)]
-pub struct ErrorDisplay<'a> {
+#[derive(Clone, Debug, Serialize)]
+pub struct ErrorDisplay {
     pub code: u64,
-    pub err: &'a str,
+    pub err: String,
 }
 
 impl Error {
     fn code(&self) -> u64 {
         match self {
-            Sqlx(_) => 510000u64
+            Sqlx(_) => 510000u64,
+            Hcaptcha(_) => 410000u64
         }
     }
 
-    fn user_msg(&self) -> &'static str {
+    fn user_msg(&self) -> String {
         match self {
-            Sqlx(_) => "database error"
+            Sqlx(_) => "database error".to_string(),
+            Hcaptcha(e) => format!("{}", e)
         }
     }
 
@@ -42,7 +47,8 @@ impl Error {
 impl error::ResponseError for Error {
     fn status_code(&self) -> StatusCode {
         match self {
-            Sqlx(_) => StatusCode::INTERNAL_SERVER_ERROR
+            Sqlx(_) => StatusCode::INTERNAL_SERVER_ERROR,
+            Hcaptcha(_) => StatusCode::FORBIDDEN
         }
     }
 
