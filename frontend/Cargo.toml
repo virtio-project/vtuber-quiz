@@ -1,0 +1,9 @@
+[package]
+name = "vtuber-quiz-frontend"
+version = "0.1.0"
+authors = ["Shell Chen <me@sorz.org>"]
+edition = "2018"
+
+[dependencies]
+yew = "0.18"
+
