@@ -13,6 +13,8 @@ pub enum Error {
     Sqlx(#[from] sqlx::Error),
     #[error(transparent)]
     Hcaptcha(#[from] crate::hcaptcha::HcaptchaError),
+    #[error("username has been taken")]
+    ConflictUsername,
     #[error("username or password is incorrect")]
     InvalidCredential,
 }
@@ -28,7 +30,8 @@ impl Error {
         match self {
             Sqlx(_) => 510000u64,
             Hcaptcha(_) => 410000u64,
-            InvalidCredential => 420000u64
+            InvalidCredential => 420000u64,
+            ConflictUsername => 430001u64
         }
     }
 
@@ -36,7 +39,7 @@ impl Error {
         match self {
             Sqlx(_) => "database error".to_string(),
             Hcaptcha(e) => format!("{}", e),
-            InvalidCredential => format!("{}", self)
+            _ => format!("{}", self)
         }
     }
 
@@ -53,11 +56,13 @@ impl error::ResponseError for Error {
         match self {
             Sqlx(_) => StatusCode::INTERNAL_SERVER_ERROR,
             Hcaptcha(_) => StatusCode::FORBIDDEN,
-            InvalidCredential => StatusCode::FORBIDDEN
+            InvalidCredential => StatusCode::FORBIDDEN,
+            ConflictUsername => StatusCode::CONFLICT
         }
     }
 
     fn error_response(&self) -> Response<Body> {
+        error!("{}", self);
         let mut resp = Response::new(self.status_code());
         resp.headers_mut().insert(
             header::CONTENT_TYPE,

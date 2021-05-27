@@ -7,6 +7,7 @@ use crate::Pool;
 use crate::error::Error;
 use rand::{thread_rng, RngCore};
 use std::future::Future;
+use std::borrow::Cow;
 
 #[derive(Debug, Deserialize)]
 pub struct RegisterRequest {
@@ -77,8 +78,19 @@ returning id
             username,
             hashed)
             .fetch_one(pool)
-            .await?;
-        Ok(id.id)
+            .await;
+        match id {
+            Ok(id) => Ok(id.id),
+            // https://www.postgresql.org/docs/9.2/errcodes-appendix.html
+            // 23505 unique_violation
+            Err(sqlx::Error::Database(e)) => if e.code() == Some(Cow::Borrowed("23505")) {
+                Err(Error::ConflictUsername)
+            } else {
+                Err(sqlx::Error::Database(e).into())
+            },
+            Err(e) => Err(e.into())
+        }
+
     }
 
     pub async fn get_by_username(pool: &Pool, username: &str) -> Result<Self, Error> {
