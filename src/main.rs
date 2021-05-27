@@ -1,4 +1,5 @@
 #[macro_use] extern crate log;
+#[macro_use] extern crate sqlx;
 
 use std::borrow::Borrow;
 
