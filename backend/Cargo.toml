@@ -18,6 +18,8 @@ dotenv = "0.15"
 hcaptcha = "1.0"
 log = "0.4"
 pretty_env_logger = "0.4"
+rand = "0.8"
+rust-argon2 = "0.8"
 serde = "1.0"
 serde_json = "1.0"
 sqlx = { version = "0.5", features = [ "chrono", "macros", "postgres", "runtime-tokio-rustls" ] }

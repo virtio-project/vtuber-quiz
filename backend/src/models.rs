@@ -1,10 +1,12 @@
-use actix_web::{Responder, HttpRequest, HttpResponse};
 use chrono::{DateTime, Utc};
 use chrono::serde::ts_milliseconds;
 use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
-use crate::Pool;
 
+use crate::Pool;
+use crate::error::Error;
+use rand::{thread_rng, RngCore};
+use std::future::Future;
 
 #[derive(Debug, Deserialize)]
 pub struct RegisterRequest {
@@ -36,6 +38,7 @@ pub enum VoteAction { UpVote, DownVote, FlagOutdated, FlagIncorrect }
 pub struct User {
     pub id: i32,
     pub username: String,
+    #[serde(skip_serializing)]
     pub password: String,
     pub role: UserRole,
     pub blocked: bool,
@@ -63,9 +66,77 @@ pub struct Question {
 }
 
 impl User {
-    pub async fn create(db: &Pool, username: String, password: String) {
-        let conn = db.acquire().await?;
-        query!(r#"insert into "user""#)
+    pub async fn create(pool: &Pool, username: &str, password: &str) -> Result<i32, Error> {
+        let hashed = Self::hash_password(password.as_bytes());
+        let id = query!(
+            r#"
+insert into "user" (username, password)
+values ( $1, $2 )
+returning id
+            "#,
+            username,
+            hashed)
+            .fetch_one(pool)
+            .await?;
+        Ok(id.id)
+    }
+
+    pub async fn get_by_username(pool: &Pool, username: &str) -> Result<Self, Error> {
+        let user = query_as!(
+            User,
+            r#"
+select id, username, password, blocked, role as "role: UserRole", reputation, created, updated
+from "user"
+where username = $1
+limit 1
+            "#,
+            username)
+            .fetch_one(pool)
+            .await?;
+        Ok(user)
+    }
+
+    pub async fn get_by_id(pool: &Pool, id: i32) -> Result<Self, Error> {
+        let user = query_as!(
+            User,
+            r#"
+select id, username, password, blocked, role as "role: UserRole", reputation, created, updated
+from "user"
+where id = $1
+limit 1
+            "#,
+            id)
+            .fetch_one(pool)
+            .await?;
+        Ok(user)
+    }
+
+    pub async fn login(pool: &Pool, username: &str, password: &str) -> Result<Self, Error> {
+        match Self::get_by_username(pool, username).await {
+            Ok(user) => if user.verify_password(password.as_bytes()) {
+                Ok(user)
+            } else {
+                Err(Error::InvalidCredential)
+            },
+            Err(Error::Sqlx(sqlx::Error::RowNotFound)) => Err(Error::InvalidCredential),
+            Err(e) => Err(e)
+        }
+    }
+
+    fn hash_password(password: &[u8]) -> String {
+        let mut rng = thread_rng();
+        let mut salt = [0u8; 16];
+        rng.fill_bytes(&mut salt);
+        let config = argon2::Config {
+            // ref: https://datatracker.ietf.org/doc/draft-irtf-cfrg-argon2/
+            variant: argon2::Variant::Argon2id,
+            ..Default::default()
+        };
+        argon2::hash_encoded(password, &salt, &config).unwrap()
+    }
+
+    fn verify_password(&self, password: &[u8]) -> bool {
+        argon2::verify_encoded(self.password.as_str(), password).unwrap()
     }
 }
 
