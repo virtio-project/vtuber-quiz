@@ -6,4 +6,6 @@ edition = "2018"
 
 [dependencies]
 yew = "0.18"
-
+yew-router = "0.15"
+log = "0.4.6"
+wasm-logger = "0.2"

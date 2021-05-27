@@ -1,4 +1,18 @@
+use std::fmt;
 use yew::prelude::*;
+use yew_router::prelude::*;
+
+mod pages;
+
+#[derive(Switch, Debug, Clone)]
+enum AppRoute {
+    #[to = "/accounts/login"]
+    Login,
+    #[to = "/accounts/register"]
+    Register,
+    #[to = "/"]
+    Home,
+}
 
 enum Msg {
     AddOne,
@@ -14,10 +28,7 @@ impl Component for Model {
     type Properties = ();
 
     fn create(_props: Self::Properties, link: ComponentLink<Self>) -> Self {
-        Self {
-            link,
-            value: 0,
-        }
+        Self { link, value: 0 }
     }
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
@@ -36,13 +47,27 @@ impl Component for Model {
     fn view(&self) -> Html {
         html! {
             <div>
-                <button onclick=self.link.callback(|_| Msg::AddOne)>{ "+1s" }</button>
-                <p>{ self.value }</p>
+                <Router<AppRoute> render=Router::render(switch) />
             </div>
         }
     }
 }
 
+fn switch(routes: AppRoute) -> Html {
+    match routes {
+        AppRoute::Home => {
+            html! { <pages::Home /> }
+        }
+        AppRoute::Login => {
+            html! { <pages::accounts::Login /> }
+        }
+        AppRoute::Register => {
+            html! { <pages::accounts::Register /> }
+        }
+    }
+}
+
 fn main() {
+    wasm_logger::init(wasm_logger::Config::new(log::Level::Debug));
     yew::start_app::<Model>();
 }
