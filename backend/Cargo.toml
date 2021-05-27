@@ -1,5 +1,5 @@
 [package]
-name = "vtuber-quiz"
+name = "vtuber-quiz-backend"
 version = "0.1.0"
 authors = ["lightsing <light.tsing@gmail.com>"]
 edition = "2018"
