@@ -10,7 +10,7 @@ use std::future::Future;
 use std::borrow::Cow;
 
 #[derive(Debug, Deserialize)]
-pub struct RegisterRequest {
+pub struct RegRequest {
     pub username: String,
     pub password: String,
 }

@@ -4,13 +4,13 @@ use actix_session::Session;
 
 use crate::error::Error;
 use crate::hcaptcha::Hcaptcha;
-use crate::models::{RegisterRequest, User};
+use crate::models::{RegRequest, User, LoginRequest};
 use crate::Pool;
 
 
 #[post("/user")]
 pub async fn register(
-    req: web::Json<RegisterRequest>,
+    req: web::Json<RegRequest>,
     pool: web::Data<Pool>,
     session: Session,
     _hcaptcha: Hcaptcha,
@@ -20,7 +20,15 @@ pub async fn register(
     Ok(HttpResponse::Ok().json(User::get_by_id(&pool, id).await?))
 }
 
-// #[post("/user/{username}/session")]
-// async fn login() {
-//
-// }
+#[post("/user/{username}/session")]
+pub async fn login(
+    username: web::Path<String>,
+    req: web::Json<LoginRequest>,
+    pool: web::Data<Pool>,
+    session: Session,
+    _hcaptcha: Hcaptcha,
+) -> Result<HttpResponse> {
+    let user = User::login(&pool, username.as_str(), req.password.as_str()).await?;
+    session.insert("user", user.id)?;
+    Ok(HttpResponse::Ok().json(user))
+}

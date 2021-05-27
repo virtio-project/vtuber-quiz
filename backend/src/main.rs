@@ -38,6 +38,7 @@ async fn main() -> anyhow::Result<()> {
             .service(
                 web::scope("/api")
                     .service(services::register)
+                    .service(services::login)
             )
     })
     .bind(&config.host.bind)?
