@@ -3,13 +3,9 @@ use std::net::IpAddr;
 use std::pin::Pin;
 use std::str::FromStr;
 
-use actix_http::Response;
-use actix_web::body::Body;
 use actix_web::dev::Payload;
-use actix_web::error;
-use actix_web::http::{header, StatusCode};
-use actix_web::{FromRequest, HttpRequest};
 use actix_web::web::Data;
+use actix_web::{FromRequest, HttpRequest};
 
 use crate::error::Error;
 
@@ -34,7 +30,7 @@ impl FromRequest for Hcaptcha {
 
     fn from_request(req: &HttpRequest, _payload: &mut Payload) -> Self::Future {
         if cfg!(feature = "bypass-hcaptcha") {
-            return Box::pin(async { Ok(Hcaptcha { _private: () }) })
+            return Box::pin(async { Ok(Hcaptcha { _private: () }) });
         }
         let response: Option<&str> = req
             .headers()

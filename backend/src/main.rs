@@ -1,19 +1,21 @@
-#[macro_use] extern crate log;
-#[macro_use] extern crate sqlx;
+#[macro_use]
+extern crate log;
+#[macro_use]
+extern crate sqlx;
 
 use std::borrow::Borrow;
 
-use actix_web::middleware::Logger;
-use actix_web::{App, HttpServer, web};
 use actix_session::CookieSession;
-use sqlx::Postgres;
+use actix_web::middleware::Logger;
+use actix_web::{web, App, HttpServer};
 use sqlx::postgres::PgPoolOptions;
+use sqlx::Postgres;
 
 mod config;
-mod services;
-mod models;
 mod error;
 mod hcaptcha;
+mod models;
+mod services;
 
 use crate::config::Config;
 type Pool = sqlx::Pool<Postgres>;
@@ -38,7 +40,7 @@ async fn main() -> anyhow::Result<()> {
             .service(
                 web::scope("/api")
                     .service(services::register)
-                    .service(services::login)
+                    .service(services::login),
             )
     })
     .bind(&config.host.bind)?

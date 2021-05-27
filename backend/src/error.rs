@@ -1,11 +1,10 @@
 use actix_http::Response;
 use actix_web::body::Body;
 use actix_web::error;
-use actix_web::http::{StatusCode, header};
+use actix_web::http::{header, StatusCode};
 use serde::Serialize;
 
 use Error::*;
-use std::borrow::Borrow;
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
@@ -31,7 +30,7 @@ impl Error {
             Sqlx(_) => 510000u64,
             Hcaptcha(_) => 410000u64,
             InvalidCredential => 420000u64,
-            ConflictUsername => 430001u64
+            ConflictUsername => 430001u64,
         }
     }
 
@@ -39,14 +38,14 @@ impl Error {
         match self {
             Sqlx(_) => "database error".to_string(),
             Hcaptcha(e) => format!("{}", e),
-            _ => format!("{}", self)
+            _ => format!("{}", self),
         }
     }
 
     fn as_display(&self) -> ErrorDisplay {
         ErrorDisplay {
             code: self.code(),
-            err: self.user_msg()
+            err: self.user_msg(),
         }
     }
 }
@@ -57,7 +56,7 @@ impl error::ResponseError for Error {
             Sqlx(_) => StatusCode::INTERNAL_SERVER_ERROR,
             Hcaptcha(_) => StatusCode::FORBIDDEN,
             InvalidCredential => StatusCode::FORBIDDEN,
-            ConflictUsername => StatusCode::CONFLICT
+            ConflictUsername => StatusCode::CONFLICT,
         }
     }
 
@@ -68,11 +67,10 @@ impl error::ResponseError for Error {
             header::CONTENT_TYPE,
             header::HeaderValue::from_static("application/json"),
         );
-        let body = serde_json::to_string(&self.as_display())
-            .unwrap_or_else(|e| {
-                error!("error occurred when generating error response: {}", e);
-                r#"{"code":500000, "err":"internal server error"}"#.to_string()
-            });
+        let body = serde_json::to_string(&self.as_display()).unwrap_or_else(|e| {
+            error!("error occurred when generating error response: {}", e);
+            r#"{"code":500000, "err":"internal server error"}"#.to_string()
+        });
         resp.set_body(Body::from(body))
     }
 }

@@ -1,7 +1,7 @@
+use actix_session::CookieSession;
 use serde::Deserialize;
 use sqlx::postgres::PgConnectOptions;
 use std::{env, fs};
-use actix_session::CookieSession;
 
 #[derive(Clone, Debug, Deserialize)]
 pub struct Config {
@@ -39,17 +39,27 @@ pub struct Database {
     pub database: String,
 }
 
-fn default_bind() -> String { "127.0.0.1:8080".to_string() }
-fn default_cookie_name() -> String { "session".to_string() }
-fn default_cookie_path() -> String { "/".to_string() }
-const fn default_port() -> u16 { 5432 }
-const fn default_true() -> bool { true }
+fn default_bind() -> String {
+    "127.0.0.1:8080".to_string()
+}
+fn default_cookie_name() -> String {
+    "session".to_string()
+}
+fn default_cookie_path() -> String {
+    "/".to_string()
+}
+const fn default_port() -> u16 {
+    5432
+}
+const fn default_true() -> bool {
+    true
+}
 
 #[derive(Clone, Debug, Deserialize)]
 pub struct HCaptcha {
     #[serde(rename = "site-key")]
     pub site_key: String,
-    pub secret: String
+    pub secret: String,
 }
 
 impl From<&Database> for PgConnectOptions {

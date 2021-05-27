@@ -1,12 +1,10 @@
+use actix_session::Session;
 use actix_web::{post, web};
 use actix_web::{HttpResponse, Result};
-use actix_session::Session;
 
-use crate::error::Error;
 use crate::hcaptcha::Hcaptcha;
-use crate::models::{RegRequest, User, LoginRequest};
+use crate::models::{LoginRequest, RegRequest, User};
 use crate::Pool;
-
 
 #[post("/user")]
 pub async fn register(
