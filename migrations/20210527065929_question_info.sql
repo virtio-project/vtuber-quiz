@@ -7,6 +7,7 @@ create table question
     answer      integer[]                 not null,
     type        question_type             not null,
     draft       boolean                   not null,
+    deleted     boolean                   not null default false,
     created     timestamptz               not null default current_timestamp,
     updated     timestamptz               not null default current_timestamp
 );
