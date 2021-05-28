@@ -2,7 +2,7 @@ use std::borrow::Cow;
 
 use chrono::serde::ts_milliseconds;
 use chrono::{DateTime, Utc};
-use rand::{thread_rng, RngCore};
+use rand::{thread_rng, RngCore, Rng};
 use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
 
@@ -53,6 +53,8 @@ pub struct User {
     pub username: String,
     #[serde(skip_serializing)]
     pub password: String,
+    #[serde(skip_serializing)]
+    pub challenge: Option<String>,
     pub role: UserRole,
     pub blocked: bool,
     pub reputation: i32,
@@ -111,7 +113,7 @@ returning id
         let user = query_as!(
             User,
             r#"
-select id, username, password, blocked, role as "role: UserRole", reputation, created, updated
+select id, username, password, challenge, blocked, role as "role: UserRole", reputation, created, updated
 from "user"
 where username = $1
 limit 1
@@ -127,7 +129,7 @@ limit 1
         let user = query_as!(
             User,
             r#"
-select id, username, password, blocked, role as "role: UserRole", reputation, created, updated
+select id, username, password, challenge, blocked, role as "role: UserRole", reputation, created, updated
 from "user"
 where id = $1
 limit 1
@@ -153,6 +155,25 @@ limit 1
         }
     }
 
+    pub async fn create_or_replace_challenge(self, pool: &Pool) -> Result<Self, Error> {
+        loop {
+            let challenge = Self::generate_challenge_code();
+            match query!(r#"update "user" set challenge = $1 where id = $2"#, &challenge, &self.id).execute(pool).await {
+                Ok(_) => return Self::get_by_id(pool, self.id).await,
+                // https://www.postgresql.org/docs/9.2/errcodes-appendix.html
+                // 23505 unique_violation
+                Err(sqlx::Error::Database(e)) => {
+                    if e.code() == Some(Cow::Borrowed("23505")) {
+                        continue
+                    } else {
+                        return Err(sqlx::Error::Database(e).into())
+                    }
+                }
+                Err(e) => return Err(e.into()),
+            }
+        }
+    }
+
     fn hash_password(password: &[u8]) -> String {
         let mut rng = thread_rng();
         let mut salt = [0u8; 16];
@@ -167,6 +188,17 @@ limit 1
 
     fn verify_password(&self, password: &[u8]) -> bool {
         argon2::verify_encoded(self.password.as_str(), password).unwrap()
+    }
+
+    fn generate_challenge_code() -> String {
+        const CHALLENGE_LEN: usize = 7;
+        const CHALLENGE_CHARSET: &[u8] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        let mut rng = thread_rng();
+        (0..CHALLENGE_LEN).map(|_| {
+            let idx = rng.gen_range(0..CHALLENGE_CHARSET.len());
+            CHALLENGE_CHARSET[idx] as char
+        })
+        .collect()
     }
 }
 

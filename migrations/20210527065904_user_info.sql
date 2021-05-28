@@ -3,12 +3,15 @@ create table "user"
     id         serial primary key,
     username   varchar(20) not null unique,
     password   text        not null,
+    challenge  varchar(10),
     blocked    boolean     not null default false,
     role       user_role   not null default 'normal'::user_role,
     reputation integer     not null default 0,
     created    timestamptz not null default current_timestamp,
     updated    timestamptz not null default current_timestamp
 );
+
+create unique index on "user"(challenge) where challenge is not null;
 
 create table bilibili
 (
