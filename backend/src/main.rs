@@ -16,6 +16,7 @@ mod error;
 mod hcaptcha;
 mod models;
 mod services;
+mod bilibili;
 
 use crate::config::Config;
 type Pool = sqlx::Pool<Postgres>;
