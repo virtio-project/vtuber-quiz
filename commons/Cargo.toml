@@ -1,0 +1,13 @@
+[package]
+name = "vtuber-quiz-commons"
+version = "0.1.0"
+authors = ["lightsing <light.tsing@gmail.com>"]
+edition = "2018"
+
+[features]
+backend = ["sqlx", "sqlx/chrono"]
+
+[dependencies]
+chrono = { version = "0.4", features = [ "serde" ] }
+serde = "1.0"
+sqlx = { version = "0.5", default-features = false, optional = true }

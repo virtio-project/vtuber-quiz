@@ -63,7 +63,7 @@ impl AccountInfo {
         if response.success() {
             Ok(response.data.unwrap())
         } else {
-            Err(response.into_error())?
+            Err(response.into_error().into())
         }
     }
 }

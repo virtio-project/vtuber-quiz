@@ -6,20 +6,18 @@ extern crate sqlx;
 use std::borrow::Borrow;
 
 use actix_session::CookieSession;
+use actix_web::{App, HttpServer, web};
 use actix_web::middleware::Logger;
-use actix_web::{web, App, HttpServer};
 use sqlx::postgres::PgPoolOptions;
-use sqlx::Postgres;
+
+use crate::config::Config;
 
 mod config;
 mod error;
 mod hcaptcha;
-mod models;
 mod services;
 mod bilibili;
-
-use crate::config::Config;
-type Pool = sqlx::Pool<Postgres>;
+mod db;
 
 #[actix_web::main]
 async fn main() -> anyhow::Result<()> {
