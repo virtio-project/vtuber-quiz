@@ -76,7 +76,7 @@ impl From<&Database> for PgConnectOptions {
 impl From<&Cookie> for CookieSession {
     fn from(c: &Cookie) -> Self {
         let key = base64::decode(&c.key).unwrap();
-        CookieSession::signed(&key)
+        CookieSession::private(&key)
             .domain(c.domain.as_str())
             .name(c.name.as_str())
             .path(c.path.as_str())
