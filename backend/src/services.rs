@@ -42,7 +42,7 @@ pub async fn follow_user(
     session: Session,
 ) -> Result<HttpResponse> {
     let from = session.get::<i32>("user").ok().flatten().ok_or(Error::InvalidCredential)?;
-    db::follow(&pool, from, *id, req.private)?;
+    db::follow(&pool, from, *id, req.private).await?;
     Ok(HttpResponse::NoContent().finish())
 }
 
@@ -53,7 +53,7 @@ pub async fn unfollow_user(
     session: Session,
 ) -> Result<HttpResponse> {
     let from = session.get::<i32>("user").ok().flatten().ok_or(Error::InvalidCredential)?;
-    db::unfollow(&pool, from, *id)?;
+    db::unfollow(&pool, from, *id).await?;
     Ok(HttpResponse::NoContent().finish())
 }
 
