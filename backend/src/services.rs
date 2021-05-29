@@ -45,7 +45,7 @@ pub async fn get_self(
 }
 
 #[post("/user/self/bilbili/verify_code")]
-pub async fn bind_bilbili(
+pub async fn create_challenge_code(
     pool: web::Data<PgPool>,
     session: Session,
 ) -> Result<HttpResponse> {

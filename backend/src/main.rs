@@ -41,7 +41,7 @@ async fn main() -> anyhow::Result<()> {
                     .service(services::register)
                     .service(services::login)
                     .service(services::get_self)
-                    .service(services::bind_bilbili)
+                    .service(services::create_challenge_code)
             )
     })
     .bind(&config.host.bind)?
