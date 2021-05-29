@@ -1,5 +1,5 @@
 use actix_session::Session;
-use actix_web::{get, post, web};
+use actix_web::{get, post, delete, web};
 use actix_web::{HttpResponse, Result};
 use sqlx::PgPool;
 use vtuber_quiz_commons::models::*;
@@ -43,6 +43,17 @@ pub async fn follow_user(
 ) -> Result<HttpResponse> {
     let from = session.get::<i32>("user").ok().flatten().ok_or(Error::InvalidCredential)?;
     db::follow(&pool, from, *id, req.private)?;
+    Ok(HttpResponse::NoContent().finish())
+}
+
+#[delete("/user/by-id/{id}/follow")]
+pub async fn unfollow_user(
+    id: web::Path<i32>,
+    pool: web::Data<PgPool>,
+    session: Session,
+) -> Result<HttpResponse> {
+    let from = session.get::<i32>("user").ok().flatten().ok_or(Error::InvalidCredential)?;
+    db::unfollow(&pool, from, *id)?;
     Ok(HttpResponse::NoContent().finish())
 }
 

@@ -42,6 +42,7 @@ async fn main() -> anyhow::Result<()> {
                     .service(services::login)
                     .service(services::get_self)
                     .service(services::follow_user)
+                    .service(services::unfollow_user)
                     .service(services::create_challenge_code)
             )
     })

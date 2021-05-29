@@ -112,6 +112,13 @@ pub async fn follow(pool: &PgPool, from: i32, to: i32, private: bool) -> Result<
     }
 }
 
+pub async fn unfollow(pool: &PgPool, from: i32, to: i32) -> Result<(), Error> {
+    query!(r#"delete from following where follower = $1 and followee = $2"#, from, to)
+        .execute(pool).await
+        .map(|_| ())?;
+    Ok(())
+}
+
 fn hash_password(password: &[u8]) -> String {
     let mut rng = thread_rng();
     let mut salt = [0u8; 16];
