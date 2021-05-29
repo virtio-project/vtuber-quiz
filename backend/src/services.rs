@@ -1,5 +1,5 @@
 use actix_session::Session;
-use actix_web::{post, web};
+use actix_web::{get, post, web};
 use actix_web::{HttpResponse, Result};
 use sqlx::PgPool;
 use vtuber_quiz_commons::models::*;
@@ -31,6 +31,16 @@ pub async fn login(
 ) -> Result<HttpResponse> {
     let user = db::login(&pool, username.as_str(), req.password.as_str()).await?;
     session.insert("user", user.id)?;
+    Ok(HttpResponse::Ok().json(user))
+}
+
+#[get("/user/self")]
+pub async fn get_self(
+    pool: web::Data<PgPool>,
+    session: Session,
+) -> Result<HttpResponse> {
+    let id = session.get::<i32>("user").ok().flatten().ok_or(Error::InvalidCredential)?;
+    let user = db::get_user_by_id(&pool, id).await?;
     Ok(HttpResponse::Ok().json(user))
 }
 

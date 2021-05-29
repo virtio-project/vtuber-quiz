@@ -39,7 +39,9 @@ async fn main() -> anyhow::Result<()> {
             .service(
                 web::scope("/api")
                     .service(services::register)
-                    .service(services::login),
+                    .service(services::login)
+                    .service(services::get_self)
+                    .service(services::bind_bilbili)
             )
     })
     .bind(&config.host.bind)?
