@@ -55,6 +55,16 @@ pub enum VoteAction {
     FlagIncorrect,
 }
 
+#[cfg_attr(feature = "backend", derive(sqlx::Type))]
+#[cfg_attr(feature = "backend", sqlx(type_name = "audience", rename_all = "lowercase"))]
+#[derive(Copy, Clone, Debug, Serialize, Eq, PartialEq)]
+#[serde(rename_all = "snake_case")]
+pub enum Audience {
+    Vtuber,
+    Fan,
+    Passenger,
+}
+
 #[cfg_attr(feature = "backend", derive(sqlx::FromRow))]
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct User {
@@ -86,7 +96,9 @@ pub struct Question {
     #[cfg_attr(feature = "backend", sqlx(rename = "type"))]
     #[serde(rename = "type")]
     pub question_type: QuestionType,
+    pub audiences: Vec<Audience>,
     pub draft: bool,
+    pub deleted: bool,
     #[serde(with = "ts_milliseconds")]
     pub created: DateTime<Utc>,
     #[serde(with = "ts_milliseconds")]
