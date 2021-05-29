@@ -14,7 +14,7 @@ pub enum Error {
     Hcaptcha(#[from] crate::hcaptcha::HcaptchaError),
     #[error("username has been taken")]
     ConflictUsername,
-    #[error("username or password is incorrect")]
+    #[error("unauthorized")]
     InvalidCredential,
 }
 
