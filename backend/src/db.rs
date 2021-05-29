@@ -96,6 +96,22 @@ pub async fn login(pool: &PgPool, username: &str, password: &str) -> Result<User
     }
 }
 
+pub async fn follow(pool: &PgPool, from: i32, to: i32, private: bool) -> Result<(), Error> {
+    match query!(r#"insert into following (follower, followee, private) values ($1, $2, $3)"#, from, to, private).execute(pool).await {
+        Ok(_) => Ok(()),
+        // https://www.postgresql.org/docs/9.2/errcodes-appendix.html
+        // 23505 unique_violation
+        Err(sqlx::Error::Database(e)) => {
+            if e.code() == Some(Cow::Borrowed("23505")) {
+                Ok(())
+            } else {
+                Err(sqlx::Error::Database(e).into())
+            }
+        }
+        Err(e) => return Err(e.into()),
+    }
+}
+
 fn hash_password(password: &[u8]) -> String {
     let mut rng = thread_rng();
     let mut salt = [0u8; 16];

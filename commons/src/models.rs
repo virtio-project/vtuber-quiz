@@ -14,6 +14,12 @@ pub struct LoginRequest {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+pub struct FollowRequest {
+    #[serde(default = "default_false")]
+    pub private: bool,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
 pub struct ChallengeResponse {
     pub code: String,
     pub templates: Vec<String>
@@ -99,3 +105,5 @@ impl ChallengeResponse {
         }
     }
 }
+
+const fn default_false() -> bool { false }

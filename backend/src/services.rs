@@ -34,6 +34,18 @@ pub async fn login(
     Ok(HttpResponse::Ok().json(user))
 }
 
+#[post("/user/by-id/{id}/follow")]
+pub async fn follow_user(
+    id: web::Path<i32>,
+    req: web::Json<FollowRequest>,
+    pool: web::Data<PgPool>,
+    session: Session,
+) -> Result<HttpResponse> {
+    let from = session.get::<i32>("user").ok().flatten().ok_or(Error::InvalidCredential)?;
+    db::follow(&pool, from, *id, req.private)?;
+    Ok(HttpResponse::NoContent().finish())
+}
+
 #[get("/user/self")]
 pub async fn get_self(
     pool: web::Data<PgPool>,
