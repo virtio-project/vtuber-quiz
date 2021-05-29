@@ -8,7 +8,6 @@ use crate::db;
 use crate::error::Error;
 use crate::hcaptcha::Hcaptcha;
 
-
 #[post("/user")]
 pub async fn register(
     req: web::Json<RegRequest>,
