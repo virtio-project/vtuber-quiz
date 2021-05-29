@@ -2,8 +2,6 @@
 create type question_type as enum ('true_false', 'multi_choice', 'multi_answer');
 -- 投票类型：顶、踩、标记过时、标记错误
 create type vote_action as enum ('up_vote', 'down_vote', 'flag_outdated', 'flag_incorrect');
--- 题目适用的对象：vtuber自己、粉丝、路人（？有必要吗）
-create type audience as enum ('vtuber', 'fan', 'passenger');
 
 create table question
 (
@@ -18,8 +16,10 @@ create table question
     answer      integer[]                 not null,
     -- 题目类型
     type        question_type             not null,
-    -- 题目适用的对象
-    audiences   audience[]                not null,
+    -- 题目适用的对象：vtuber自己、粉丝、路人（？有必要吗）
+    -- fixme: create type audience as enum ('vtuber', 'fan', 'passenger');
+    -- sqlx 对自定义类型的支持不完全，在代码中约束了取值
+    audiences   varchar(10)[]                not null,
     -- 是否为草稿（仅自己可见）
     draft       boolean                   not null,
     -- 是否删除

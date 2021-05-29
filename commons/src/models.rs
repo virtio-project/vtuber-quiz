@@ -1,6 +1,7 @@
 use chrono::serde::ts_milliseconds;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
+use std::collections::HashSet;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct RegRequest {
@@ -26,8 +27,15 @@ pub struct ChallengeResponse {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+pub struct QuestionCreationRequest {
+    pub content: QuestionContent,
+    pub audiences: HashSet<Audience>,
+    pub draft: bool,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(untagged)]
-pub enum QuestionCreationRequest {
+pub enum QuestionContent {
     TrueFalse(TrueFalseQuestion),
     MultiChoice(MultiChoiceQuestion),
     MultiAnswer(MultiAnswerQuestion),
@@ -35,22 +43,22 @@ pub enum QuestionCreationRequest {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct TrueFalseQuestion {
-    description: String,
-    is_true: bool,
+    pub description: String,
+    pub is_true: bool,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct MultiChoiceQuestion {
-    description: String,
-    choices: Vec<String>,
-    answer: usize,
+    pub description: String,
+    pub choices: Vec<String>,
+    pub answer: usize,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct MultiAnswerQuestion {
-    description: String,
-    choices: Vec<String>,
-    answer: Vec<usize>,
+    pub description: String,
+    pub choices: Vec<String>,
+    pub answer: Vec<usize>,
 }
 
 #[cfg_attr(feature = "backend", derive(sqlx::Type))]
@@ -85,7 +93,7 @@ pub enum VoteAction {
 
 #[cfg_attr(feature = "backend", derive(sqlx::Type))]
 #[cfg_attr(feature = "backend", sqlx(type_name = "audience", rename_all = "lowercase"))]
-#[derive(Copy, Clone, Debug, Serialize, Deserialize, Eq, PartialEq)]
+#[derive(Copy, Clone, Debug, Serialize, Deserialize, Eq, PartialEq, Hash)]
 #[serde(rename_all = "snake_case")]
 pub enum Audience {
     Vtuber,
@@ -147,6 +155,55 @@ impl ChallengeResponse {
 }
 
 impl QuestionCreationRequest {
+    pub fn audiences(&self) -> Vec<String> {
+        self.audiences
+            .iter()
+            .map(|audience| serde_json::to_string(audience).unwrap())
+            .collect()
+    }
+}
+
+impl QuestionContent {
+    pub fn description(&self) -> &str {
+        use QuestionContent::*;
+
+        match self {
+            TrueFalse(q) => q.description.as_str(),
+            MultiChoice(q) => q.description.as_str(),
+            MultiAnswer(q) => q.description.as_str(),
+        }
+    }
+
+    pub fn choices(&self) -> Vec<String> {
+        use QuestionContent::*;
+
+        match self {
+            TrueFalse(_) => vec!["T".to_string(), "F".to_string()],
+            MultiChoice(q) => q.choices.clone(),
+            MultiAnswer(q) => q.choices.clone(),
+        }
+    }
+
+    pub fn answer(&self) -> Vec<i32> {
+        use QuestionContent::*;
+
+        match self {
+            TrueFalse(q) => if q.is_true { vec![0] } else { vec![1] },
+            MultiChoice(q) => vec![q.answer as i32],
+            MultiAnswer(q) => q.answer.iter().map(|u| *u as i32).collect(),
+        }
+    }
+
+    pub fn ty(&self) -> QuestionType {
+        use QuestionContent::*;
+
+        match self {
+            TrueFalse(_) => QuestionType::TrueFalse,
+            MultiChoice(_) => QuestionType::MultiChoice,
+            MultiAnswer(_) => QuestionType::MultiAnswer,
+        }
+    }
+
     pub fn unwrap_true_false(self) -> TrueFalseQuestion {
         if let Self::TrueFalse(q) = self {
             q
@@ -184,7 +241,7 @@ mod tests {
   "description": "1+1=3",
   "is_true": false
 }"#;
-        let question: QuestionCreationRequest = serde_json::from_str(tf_json).unwrap();
+        let question: QuestionContent = serde_json::from_str(tf_json).unwrap();
         let true_false = question.unwrap_true_false();
         assert_eq!(true_false.description.as_str(), "1+1=3");
         assert_eq!(true_false.is_true, false);
@@ -197,7 +254,7 @@ mod tests {
   "choices": ["1", "2", "4", "8"],
   "answer": 1
 }"#;
-        let question: QuestionCreationRequest = serde_json::from_str(mc_json).unwrap();
+        let question: QuestionContent = serde_json::from_str(mc_json).unwrap();
         let multi_choice = question.unwrap_multi_choice();
         assert_eq!(multi_choice.description.as_str(), "select a prime number from those numbers");
         assert_eq!(multi_choice.choices.len(), 4);
@@ -211,7 +268,7 @@ mod tests {
   "choices": ["black", "red", "green", "happy"],
   "answer": [0, 1, 2]
 }"#;
-        let question: QuestionCreationRequest = serde_json::from_str(ma_json).unwrap();
+        let question: QuestionContent = serde_json::from_str(ma_json).unwrap();
         let multi_answer = question.unwrap_multi_answer();
         assert_eq!(multi_answer.description.as_str(), "select all words describe color");
         assert_eq!(multi_answer.choices.len(), 4);

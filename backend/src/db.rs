@@ -119,6 +119,42 @@ pub async fn unfollow(pool: &PgPool, from: i32, to: i32) -> Result<(), Error> {
     Ok(())
 }
 
+pub async fn create_question(pool: &PgPool, creator: i32, question: QuestionCreationRequest) -> Result<i32, Error> {
+    let content = &question.content;
+    query!(r#"
+insert into question (creator, description, choices, answer, "type", audiences, draft)
+values ($1, $2, $3, $4, $5, $6, $7)
+returning id"#,
+            creator,
+            content.description(),
+            &content.choices(),
+            &content.answer(),
+            content.ty() as _,
+            &question.audiences(),
+            question.draft
+        )
+        .fetch_one(pool)
+        .await
+        .map(|res| res.id)
+        .map_err(|e| e.into())
+}
+
+pub async fn get_question(pool: &PgPool, qid: i32) -> Result<Question, Error> {
+    query_as!(
+        Question,
+        r#"
+select id, creator, description, choices, answer,
+       "type" as "question_type: QuestionType",
+       audiences as "audiences: Vec<Audience>",
+       draft, deleted, created, updated
+from question
+where id = $1"#,
+        qid
+    )
+        .fetch_one(pool).await
+        .map_err(|e| e.into())
+}
+
 fn hash_password(password: &[u8]) -> String {
     let mut rng = thread_rng();
     let mut salt = [0u8; 16];
