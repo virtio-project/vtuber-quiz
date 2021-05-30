@@ -148,7 +148,7 @@ pub async fn get_question(pool: &PgPool, qid: i32) -> Result<Question, Error> {
         r#"
 select id, creator, description, choices, answer,
        "type" as "question_type: QuestionType",
-       audiences as "audiences: Vec<Audience>",
+       audiences as "audiences: Vec<String>",
        draft, deleted, created, updated
 from question
 where id = $1"#,
