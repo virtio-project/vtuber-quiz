@@ -9,7 +9,7 @@ use Error::*;
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
     #[error(transparent)]
-    Sqlx(#[from] sqlx::Error),
+    Sqlx(sqlx::Error),
     #[error(transparent)]
     Hcaptcha(#[from] crate::hcaptcha::HcaptchaError),
     #[error("database error")]
@@ -18,6 +18,8 @@ pub enum Error {
     ConflictUsername,
     #[error("unauthorized")]
     InvalidCredential,
+    #[error("not found")]
+    NotFound
 }
 
 #[derive(Clone, Debug, Serialize)]
@@ -34,6 +36,7 @@ impl Error {
             Hcaptcha(_) => 410000u64,
             InvalidCredential => 420000u64,
             ConflictUsername => 430001u64,
+            NotFound => 440000u64,
         }
     }
 
@@ -61,6 +64,7 @@ impl error::ResponseError for Error {
             Hcaptcha(_) => StatusCode::FORBIDDEN,
             InvalidCredential => StatusCode::FORBIDDEN,
             ConflictUsername => StatusCode::CONFLICT,
+            NotFound => StatusCode::NOT_FOUND,
         }
     }
 
@@ -76,5 +80,16 @@ impl error::ResponseError for Error {
             r#"{"code":500000, "err":"internal server error"}"#.to_string()
         });
         resp.set_body(Body::from(body))
+    }
+}
+
+
+impl From<sqlx::Error> for Error {
+    fn from(e: sqlx::Error) -> Self {
+        use sqlx::Error::*;
+        match e {
+            RowNotFound => Self::NotFound,
+            _ => Self::Sqlx(e),
+        }
     }
 }

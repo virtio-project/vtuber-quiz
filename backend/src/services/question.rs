@@ -25,7 +25,12 @@ pub async fn get_question(
     qid: web::Path<i32>,
     pool: web::Data<PgPool>,
 ) -> Result<HttpResponse> {
-    Ok(HttpResponse::Ok().json(db::get_question(&pool, *qid).await?))
+    let question = db::get_question(&pool, *qid).await?;
+    if question.deleted {
+        Ok(HttpResponse::NotFound().finish())
+    } else {
+        Ok(HttpResponse::Ok().json(question))
+    }
 }
 
 #[delete("/question/{qid}")]
