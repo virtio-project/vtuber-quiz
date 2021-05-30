@@ -1,10 +1,22 @@
 use std::borrow::Cow;
+use std::convert::TryFrom;
 
 use rand::{thread_rng, RngCore, Rng};
 use sqlx::PgPool;
+use sqlx::postgres::PgDatabaseError;
 use vtuber_quiz_commons::models::*;
 
 use crate::error::Error;
+
+#[derive(Debug, thiserror::Error)]
+pub enum PgError {
+    #[error("unique_violation")]
+    UniqueViolation,
+    #[error("check_violation")]
+    CheckViolation,
+    #[error("other error")]
+    Others,
+}
 
 pub async fn create_user(pool: &PgPool, username: &str, password: &str) -> Result<i32, Error> {
     let hashed = hash_password(password.as_bytes());
@@ -19,15 +31,12 @@ returning id"#,
         .await
         .map(|res| res.id)
         .map_err(|e: sqlx::Error| -> Error {
-            match e {
-                sqlx::Error::Database(e) => {
-                    if e.code() == Some(Cow::Borrowed("23505")) {
-                        Error::ConflictUsername
-                    } else {
-                        sqlx::Error::Database(e).into()
-                    }
-                }
-                _ => e.into()
+            match PgError::try_from(e) {
+                Ok(pg) => match pg {
+                    PgError::UniqueViolation => Error::ConflictUsername,
+                    _ => pg.into(),
+                },
+                Err(e) => e
             }
         })
 }
@@ -68,16 +77,13 @@ pub async fn create_or_replace_challenge(pool: &PgPool, id: i32) -> Result<Strin
         let challenge = generate_challenge_code();
         match query!(r#"update "user" set challenge = $1 where id = $2"#, &challenge, id).execute(pool).await {
             Ok(_) => return Ok(challenge),
-            // https://www.postgresql.org/docs/9.2/errcodes-appendix.html
-            // 23505 unique_violation
-            Err(sqlx::Error::Database(e)) => {
-                if e.code() == Some(Cow::Borrowed("23505")) {
-                    continue
-                } else {
-                    return Err(sqlx::Error::Database(e).into())
-                }
-            }
-            Err(e) => return Err(e.into()),
+            Err(e) => match PgError::try_from(e) {
+                Ok(pg) => match pg {
+                    PgError::UniqueViolation => continue,
+                    _ => return Err(pg.into()),
+                },
+                Err(e) => return Err(e)
+            },
         }
     }
 }
@@ -99,16 +105,13 @@ pub async fn login(pool: &PgPool, username: &str, password: &str) -> Result<User
 pub async fn follow(pool: &PgPool, from: i32, to: i32, private: bool) -> Result<(), Error> {
     match query!(r#"insert into following (follower, followee, private) values ($1, $2, $3)"#, from, to, private).execute(pool).await {
         Ok(_) => Ok(()),
-        // https://www.postgresql.org/docs/9.2/errcodes-appendix.html
-        // 23505 unique_violation
-        Err(sqlx::Error::Database(e)) => {
-            if e.code() == Some(Cow::Borrowed("23505")) {
-                Ok(())
-            } else {
-                Err(sqlx::Error::Database(e).into())
-            }
-        }
-        Err(e) => return Err(e.into()),
+        Err(e) => match PgError::try_from(e) {
+            Ok(pg) => match pg {
+                PgError::UniqueViolation => Ok(()),
+                _ => Err(pg.into()),
+            },
+            Err(e) => Err(e)
+        },
     }
 }
 
@@ -180,4 +183,31 @@ fn generate_challenge_code() -> String {
         CHALLENGE_CHARSET[idx] as char
     })
         .collect()
+}
+
+impl TryFrom<sqlx::Error> for PgError {
+    type Error = Error;
+
+    fn try_from(e: sqlx::Error) -> Result<Self, Self::Error> {
+        use sqlx::Error::Database;
+        match e {
+            Database(e) => {
+                // assert database is postgres
+                Ok(e.downcast::<PgDatabaseError>().into())
+            },
+            _ => Err(e.into()),
+        }
+    }
+}
+
+impl From<Box<PgDatabaseError>> for PgError {
+    fn from(e: Box<PgDatabaseError>) -> Self {
+        use PgError::*;
+
+        match e.code() {
+            "23505" => UniqueViolation,
+            "23514" => CheckViolation,
+            _ => Others,
+        }
+    }
 }

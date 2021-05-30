@@ -12,6 +12,8 @@ pub enum Error {
     Sqlx(#[from] sqlx::Error),
     #[error(transparent)]
     Hcaptcha(#[from] crate::hcaptcha::HcaptchaError),
+    #[error("database error")]
+    Pg(#[from] crate::db::PgError),
     #[error("username has been taken")]
     ConflictUsername,
     #[error("unauthorized")]
@@ -28,6 +30,7 @@ impl Error {
     fn code(&self) -> u64 {
         match self {
             Sqlx(_) => 510000u64,
+            Pg(_) => 511000u64,
             Hcaptcha(_) => 410000u64,
             InvalidCredential => 420000u64,
             ConflictUsername => 430001u64,
@@ -54,6 +57,7 @@ impl error::ResponseError for Error {
     fn status_code(&self) -> StatusCode {
         match self {
             Sqlx(_) => StatusCode::INTERNAL_SERVER_ERROR,
+            Pg(_) => StatusCode::INTERNAL_SERVER_ERROR,
             Hcaptcha(_) => StatusCode::FORBIDDEN,
             InvalidCredential => StatusCode::FORBIDDEN,
             ConflictUsername => StatusCode::CONFLICT,
