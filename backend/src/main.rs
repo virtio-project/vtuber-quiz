@@ -46,6 +46,7 @@ async fn main() -> anyhow::Result<()> {
                     .service(services::create_challenge_code)
                     .service(services::create_question)
                     .service(services::get_question)
+                    .service(services::delete_question)
             )
     })
     .bind(&config.host.bind)?

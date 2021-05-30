@@ -158,6 +158,13 @@ where id = $1"#,
         .map_err(|e| e.into())
 }
 
+pub async fn delete_question(pool: &PgPool, qid: i32) -> Result<(), Error> {
+    query!(r#"update question set deleted = true where id = $1"#, qid)
+        .execute(pool).await
+        .map(|_| ())?;
+    Ok(())
+}
+
 fn hash_password(password: &[u8]) -> String {
     let mut rng = thread_rng();
     let mut salt = [0u8; 16];

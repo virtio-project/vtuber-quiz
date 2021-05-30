@@ -27,3 +27,19 @@ pub async fn get_question(
 ) -> Result<HttpResponse> {
     Ok(HttpResponse::Ok().json(db::get_question(&pool, *qid).await?))
 }
+
+#[delete("/question/{qid}")]
+pub async fn delete_question(
+    qid: web::Path<i32>,
+    pool: web::Data<PgPool>,
+    session: Session,
+) -> Result<HttpResponse> {
+    let user = session.get::<i32>("user").ok().flatten().ok_or(Error::InvalidCredential)?;
+    let question = db::get_question(&pool, *qid).await?;
+    if question.creator == user {
+        db::delete_question(&pool, *qid).await?;
+        Ok(HttpResponse::NoContent().finish())
+    } else {
+        Ok(HttpResponse::Unauthorized().finish())
+    }
+}
