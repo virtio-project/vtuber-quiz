@@ -2,6 +2,7 @@ use chrono::serde::ts_milliseconds;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
+use std::str::FromStr;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct RegRequest {
@@ -139,6 +140,20 @@ pub struct Question {
     pub created: DateTime<Utc>,
     #[serde(with = "ts_milliseconds")]
     pub updated: DateTime<Utc>,
+}
+
+impl FromStr for VoteAction {
+    type Err = serde_plain::Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        serde_plain::from_str(s)
+    }
+}
+
+impl ToString for VoteAction {
+    fn to_string(&self) -> String {
+        serde_plain::to_string(self).unwrap()
+    }
 }
 
 impl ChallengeResponse {
@@ -305,6 +320,21 @@ const fn default_false() -> bool { false }
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_vote_action() {
+        use VoteAction::*;
+
+        assert_eq!(VoteAction::from_str("up_vote").unwrap(), UpVote);
+        assert_eq!(VoteAction::from_str("down_vote").unwrap(), DownVote);
+        assert_eq!(VoteAction::from_str("flag_incorrect").unwrap(), FlagIncorrect);
+        assert_eq!(VoteAction::from_str("flag_outdated").unwrap(), FlagOutdated);
+
+        assert_eq!(UpVote.to_string().as_str(), "up_vote");
+        assert_eq!(DownVote.to_string().as_str(), "down_vote");
+        assert_eq!(FlagIncorrect.to_string().as_str(), "flag_incorrect");
+        assert_eq!(FlagOutdated.to_string().as_str(), "flag_outdated");
+    }
 
     #[test]
     fn test_true_false() {
