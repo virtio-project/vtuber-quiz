@@ -82,3 +82,43 @@ pub async fn update_question(
     db::update_question(&pool, question).await?;
     Ok(HttpResponse::Ok().json(db::get_question(&pool, *qid).await?))
 }
+
+#[post("/question/{qid}/apply/{uid}")]
+pub async fn apply_question_to_vtuber(
+    path: web::Path<(i32, i32)>,
+    pool: web::Data<PgPool>,
+    session: Session,
+) -> Result<HttpResponse> {
+    let user = session.get::<i32>("user").ok().flatten().ok_or(Error::InvalidCredential)?;
+    let (qid, uid) = path.into_inner();
+    let question = db::get_question(&pool, qid).await?;
+    if question.creator != user {
+        return Ok(HttpResponse::Unauthorized().finish());
+    }
+    let vtuber = db::get_user_by_id(&pool, uid).await?;
+    if vtuber.role != UserRole::Vtuber {
+        return Ok(HttpResponse::BadRequest().finish());
+    }
+    db::apply_question_to_vtuber(&pool, qid, uid).await?;
+    Ok(HttpResponse::NoContent().finish())
+}
+
+#[delete("/question/{qid}/apply/{uid}")]
+pub async fn remove_question_to_vtuber(
+    path: web::Path<(i32, i32)>,
+    pool: web::Data<PgPool>,
+    session: Session,
+) -> Result<HttpResponse> {
+    let user = session.get::<i32>("user").ok().flatten().ok_or(Error::InvalidCredential)?;
+    let (qid, uid) = path.into_inner();
+    let question = db::get_question(&pool, qid).await?;
+    if question.creator != user {
+        return Ok(HttpResponse::Unauthorized().finish());
+    }
+    let vtuber = db::get_user_by_id(&pool, uid).await?;
+    if vtuber.role != UserRole::Vtuber {
+        return Ok(HttpResponse::BadRequest().finish());
+    }
+    db::remove_question_to_vtuber(&pool, qid, uid).await?;
+    Ok(HttpResponse::NoContent().finish())
+}

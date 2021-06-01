@@ -189,6 +189,21 @@ pub async fn delete_question(pool: &PgPool, qid: i32) -> Result<(), Error> {
     Ok(())
 }
 
+pub async fn apply_question_to_vtuber(pool: &PgPool, qid: i32, uid: i32) -> Result<(), Error> {
+    query!(r#"insert into apply_to (question, vtuber) values ($1, $2) on conflict do nothing"#, qid, uid)
+        .execute(pool).await
+        .map(|_| ())?;
+    Ok(())
+}
+
+
+pub async fn remove_question_to_vtuber(pool: &PgPool, qid: i32, uid: i32) -> Result<(), Error> {
+    query!(r#"delete from apply_to where question = $1 and vtuber = $2"#, qid, uid)
+        .execute(pool).await
+        .map(|_| ())?;
+    Ok(())
+}
+
 fn hash_password(password: &[u8]) -> String {
     let mut rng = thread_rng();
     let mut salt = [0u8; 16];
