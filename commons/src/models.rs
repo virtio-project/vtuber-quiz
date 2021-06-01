@@ -229,6 +229,36 @@ impl QuestionContent {
     }
 }
 
+impl Question {
+    pub fn is_valid(&self) -> bool {
+        use QuestionType::*;
+
+        let choices_len = self.choices.len();
+        let answer_len = self.answer.len();
+        match self.question_type {
+            TrueFalse => {
+                if self.choices != vec!["T".to_string(), "F".to_string()] {
+                    return false;
+                }
+                if answer_len != 1 {
+                    return false;
+                }
+            }
+            MultiChoice => {
+                if answer_len != 1 {
+                    return false;
+                }
+            }
+            MultiAnswer => {
+                if answer_len > choices_len {
+                    return false;
+                }
+            }
+        }
+        true
+    }
+}
+
 const fn default_false() -> bool { false }
 
 #[cfg(test)]

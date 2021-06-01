@@ -142,6 +142,30 @@ returning id"#,
         .map_err(|e| e.into())
 }
 
+pub async fn update_question(pool: &PgPool, question: Question) -> Result<(), Error> {
+    query!(r#"
+update question
+set
+    description = $1,
+    choices = $2,
+    answer = $3,
+    audiences = $4,
+    draft = $5,
+    updated = current_timestamp
+where id = $6"#,
+        question.description,
+        &question.choices,
+        &question.answer,
+        &question.audiences,
+        question.draft,
+        question.id
+    )
+        .execute(pool)
+        .await
+        .map(|_| ())?;
+    Ok(())
+}
+
 pub async fn get_question(pool: &PgPool, qid: i32) -> Result<Question, Error> {
     query_as!(
         Question,
