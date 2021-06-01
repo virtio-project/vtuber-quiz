@@ -50,6 +50,7 @@ async fn main() -> anyhow::Result<()> {
                     .service(services::update_question)
                     .service(services::apply_question_to_vtuber)
                     .service(services::remove_question_to_vtuber)
+                    .service(services::get_question_applied)
                     .service(services::vote_to_question)
             )
     })

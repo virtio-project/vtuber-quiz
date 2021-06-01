@@ -15,6 +15,8 @@ anyhow = "1.0"
 base64 = "0.13"
 chrono = { version = "0.4", features = [ "serde" ] }
 dotenv = "0.15"
+futures = "0.3.15"
+futures-util = "0.3.15"
 hcaptcha = "1.0"
 log = "0.4"
 pretty_env_logger = "0.4"

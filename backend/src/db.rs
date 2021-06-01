@@ -204,6 +204,15 @@ pub async fn remove_question_to_vtuber(pool: &PgPool, qid: i32, uid: i32) -> Res
     Ok(())
 }
 
+pub async fn get_question_applied(pool: &PgPool, qid: i32) -> Vec<i32> {
+    use futures::future::ready;
+    use futures_util::StreamExt;
+    query!(r#"select vtuber from apply_to where question = $1"#, qid)
+        .fetch(pool) // impl Stream<Item = sqlx::Result<{adhoc struct}>>
+        .filter_map(|res| ready(res.ok().map(|r| r.vtuber)))
+        .collect().await
+}
+
 pub async fn vote_to_question(pool: &PgPool, uid: i32, qid: i32, action: VoteAction) -> Result<(), Error> {
     query!(r#"insert into vote (voter, question, action) values ($1, $2, $3)"#, uid, qid, action as _)
         .execute(pool).await

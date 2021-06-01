@@ -122,3 +122,15 @@ pub async fn remove_question_to_vtuber(
     db::remove_question_to_vtuber(&pool, qid, uid).await?;
     Ok(HttpResponse::NoContent().finish())
 }
+
+#[get("/question/{qid}/apply")]
+pub async fn get_question_applied(
+    qid: web::Path<i32>,
+    pool: web::Data<PgPool>,
+) -> Result<HttpResponse> {
+    let question = db::get_question(&pool, *qid).await?;
+    if question.draft || question.deleted {
+        return Ok(HttpResponse::NotFound().finish())
+    }
+    Ok(HttpResponse::Ok().json(db::get_question_applied(&pool, *qid).await))
+}
