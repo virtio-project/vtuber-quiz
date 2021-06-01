@@ -257,6 +257,40 @@ impl Question {
         }
         true
     }
+
+    /// panic: when the question is not valid or not a true-false question
+    pub fn unwrap_true_false(&self) -> TrueFalseQuestion {
+        assert_eq!(self.question_type, QuestionType::TrueFalse);
+        assert!(self.is_valid());
+
+        TrueFalseQuestion {
+            description: self.description.clone(),
+            is_true: self.answer[0] == 0
+        }
+    }
+
+    /// panic: when the question is not valid or not a multi-choice question
+    pub fn unwrap_multi_choice(&self) -> MultiChoiceQuestion {
+        assert_eq!(self.question_type, QuestionType::MultiChoice);
+        assert!(self.is_valid());
+
+        MultiChoiceQuestion {
+            description: self.description.clone(),
+            choices: self.choices.clone(),
+            answer: self.answer[0] as usize
+        }
+    }
+
+    pub fn unwrap_multi_answer(&self) -> MultiAnswerQuestion {
+        assert_eq!(self.question_type, QuestionType::MultiChoice);
+        assert!(self.is_valid());
+
+        MultiAnswerQuestion {
+            description: self.description.clone(),
+            choices: self.choices.clone(),
+            answer: self.answer.iter().map(|i| *i as usize).collect()
+        }
+    }
 }
 
 const fn default_false() -> bool { false }
