@@ -248,9 +248,15 @@ impl Question {
                 if answer_len != 1 {
                     return false;
                 }
+                if (self.answer[0] as usize) >= choices_len {
+                    return false;
+                }
             }
             MultiAnswer => {
                 if answer_len > choices_len {
+                    return false;
+                }
+                if !self.answer.iter().all(|i| (*i as usize) < choices_len) {
                     return false;
                 }
             }
@@ -281,6 +287,7 @@ impl Question {
         }
     }
 
+    /// panic: when the question is not valid or not a multi-answer question
     pub fn unwrap_multi_answer(&self) -> MultiAnswerQuestion {
         assert_eq!(self.question_type, QuestionType::MultiChoice);
         assert!(self.is_valid());
