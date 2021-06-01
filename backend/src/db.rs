@@ -204,6 +204,13 @@ pub async fn remove_question_to_vtuber(pool: &PgPool, qid: i32, uid: i32) -> Res
     Ok(())
 }
 
+pub async fn vote_to_question(pool: &PgPool, uid: i32, qid: i32, action: VoteAction) -> Result<(), Error> {
+    query!(r#"insert into vote (voter, question, action) values ($1, $2, $3)"#, uid, qid, action as _)
+        .execute(pool).await
+        .map(|_| ())?;
+    Ok(())
+}
+
 fn hash_password(password: &[u8]) -> String {
     let mut rng = thread_rng();
     let mut salt = [0u8; 16];

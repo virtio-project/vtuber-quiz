@@ -7,6 +7,7 @@ use vtuber_quiz_commons::models::*;
 use crate::db;
 use crate::error::Error;
 use crate::hcaptcha::Hcaptcha;
+use std::str::FromStr;
 
 #[post("/user")]
 pub async fn register(
@@ -74,4 +75,26 @@ pub async fn create_challenge_code(
     let id = session.get::<i32>("user").ok().flatten().ok_or(Error::InvalidCredential)?;
     let challenge = db::create_or_replace_challenge(&pool, id).await?;
     Ok(HttpResponse::Ok().json(ChallengeResponse::new(challenge.as_str())))
+}
+
+
+#[post("/user/vote/{qid}/{action}")]
+pub async fn vote_to_question(
+    path: web::Path<(i32, String)>,
+    pool: web::Data<PgPool>,
+    session: Session,
+    _hcaptcha: Hcaptcha,
+) -> Result<HttpResponse> {
+    let user = session.get::<i32>("user").ok().flatten().ok_or(Error::InvalidCredential)?;
+    let (qid, action) = path.into_inner();
+    let question = db::get_question(&pool, qid).await?;
+    if question.creator == user || question.draft || question.deleted {
+        return Ok(HttpResponse::BadRequest().finish())
+    }
+    if let Ok(action) = VoteAction::from_str(action.as_str()) {
+        db::vote_to_question(&pool, user, qid, action).await?;
+        Ok(HttpResponse::NoContent().finish())
+    } else {
+        Ok(HttpResponse::BadRequest().finish())
+    }
 }
