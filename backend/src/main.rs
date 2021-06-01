@@ -47,6 +47,9 @@ async fn main() -> anyhow::Result<()> {
                     .service(services::create_question)
                     .service(services::get_question)
                     .service(services::delete_question)
+                    .service(services::update_question)
+                    .service(services::apply_question_to_vtuber)
+                    .service(services::remove_question_to_vtuber)
             )
     })
     .bind(&config.host.bind)?
