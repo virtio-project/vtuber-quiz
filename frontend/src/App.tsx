@@ -2,47 +2,53 @@ import React from 'react';
 import './App.css';
 import LoginForm from './components/LoginForm';
 import Nav from './components/Nav';
-import { FlexGrid, FlexGridItem } from 'baseui/flex-grid';
 import { useStyletron } from 'baseui';
+import bg from './assests/jezael-melgoza.jpg';
 
 
 function App() {
   const [css] = useStyletron();
   return (
-      <FlexGrid
-        justifyContent='space-between'
-        alignItems='flex-start'
-        minHeight='100vh'
+    <div
+      className={css({
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'flex-start',
+        height: '100vh',
+      })}
+    >
+      <header className={css({ width: '100%' })}><Nav/></header>
+      <main
+        className={css({
+          display: 'flex',
+          width: '100%',
+          marginTop: 'scale800',
+          flexGrow: 1,
+          flexWrap: 'nowrap',
+          alignItems: 'center',
+          justifyContent: 'flex-end',
+          backgroundImage: `url(${bg})`,
+        })}
       >
-        <FlexGridItem as='header'><Nav/></FlexGridItem>
-        <FlexGridItem>
-          <FlexGrid
-            as='main'
-            marginTop='scale800'
-            paddingLeft='scale800'
-            paddingRight='scale800'
-            flexWrap={false}
-            alignItems='center'
-          >
-            <FlexGridItem/>
-            <hr className={css({
-              height: '500px',
-              margin: '0 20px',
-              border: 'none',
-              width: '2px',
-              background: 'linear-gradient(rgba(255, 255, 255, 0), #555, #444, #555, rgba(255, 255, 255, 0))'
-            })}/>
-            <FlexGridItem
-              paddingRight={['0', '0', 'scale2400', 'scale4800']}
-              minWidth='300px'
-              maxWidth='300px'
-            >
-              <LoginForm/>
-            </FlexGridItem>
-          </FlexGrid>
-        </FlexGridItem>
-        <FlexGridItem as='footer'></FlexGridItem>
-      </FlexGrid>
+        <section/>
+        <section
+          className={css({
+            marginRight: '100px',
+            width: '300px',
+            height: '350px',
+            contain: 'strict',
+          })}
+        >
+          <LoginForm/>
+        </section>
+      </main>
+      <footer className={css({
+        height: '150px'
+      })}>
+
+      </footer>
+    </div>
+
   );
 }
 
