@@ -31,7 +31,7 @@ export const Captcha = React.forwardRef<HCaptcha, CaptchaProps>((props, ref) => 
         onExpire={onExpire}
         onVerify={onVerify}
       />
-      <input name="hCaptcha-token" hidden={true} value={token === null ? "" : token}/>
+      <input name="hCaptcha-token" hidden={true} value={token === null ? "" : token} onChange={(_) => {}}/>
       <Label4 className={css({ color: '#555', 'padding-bottom': '7px' })}>
         此网站受 hCaptcha® 保护，使用本网站表示您同意其
         <a className={css({ color: '#555', 'text-decoration': 'none' })} href="https://hcaptcha.com/privacy">隐私政策</a>和
