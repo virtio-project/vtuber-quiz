@@ -27,15 +27,15 @@ export const Captcha = React.forwardRef<HCaptcha, CaptchaProps>((props, ref) => 
       <HCaptcha
         ref={ref}
         sitekey="7a49b8da-6dab-4a83-9cbd-be7def92c75d"
-        size={props.size === undefined ? "invisible": props.size}
+        size={props.size === undefined ? "normal": props.size}
         onExpire={onExpire}
         onVerify={onVerify}
       />
       <input name="hCaptcha-token" hidden={true} value={token === null ? "" : token} onChange={(_) => {}}/>
       <Label4 className={css({ color: '#555', 'padding-bottom': '7px' })}>
         此网站受 hCaptcha® 保护，使用本网站表示您同意其
-        <a className={css({ color: '#555', 'text-decoration': 'none' })} href="https://hcaptcha.com/privacy">隐私政策</a>和
-        <a className={css({ color: '#555', 'text-decoration': 'none' })} href="https://hcaptcha.com/terms">用户协议</a>。
+        <a className={css({ color: '#555', 'text-decoration': 'underline' })} href="https://hcaptcha.com/privacy">隐私政策</a>和
+        <a className={css({ color: '#555', 'text-decoration': 'underline' })} href="https://hcaptcha.com/terms">用户协议</a>。
       </Label4>
     </React.Fragment>
   );
