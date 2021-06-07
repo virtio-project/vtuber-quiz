@@ -3,6 +3,7 @@ use yew::prelude::*;
 use yew_router::prelude::*;
 
 mod pages;
+mod components;
 
 #[derive(Switch, Debug, Clone)]
 enum AppRoute {
