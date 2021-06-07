@@ -5,8 +5,25 @@ import {
   StyledNavigationItem as NavigationItem,
   StyledNavigationList as NavigationList,
 } from 'baseui/header-navigation';
-import {StyledLink as Link} from 'baseui/link';
-import {Button} from 'baseui/button';
+import { StyledLink } from 'baseui/link';
+import { Button } from 'baseui/button';
+import { Link as RouterLink } from 'react-router-dom';
+import {useStyletron} from "baseui";
+
+type LinkProps = {
+  to: string;
+  children?: React.ReactNode;
+};
+
+const Link: React.FC<LinkProps> = ({to, children}) => {
+  const [css] = useStyletron();
+  return (
+    <RouterLink className={css({
+      color: 'inherit',
+      textDecoration: 'none'
+    })} to={to}>{children}</RouterLink>
+  )
+}
 
 const Nav: React.FC = () => {
   return (
@@ -24,15 +41,15 @@ const Nav: React.FC = () => {
       <NavigationList $align={ALIGN.center} />
       <NavigationList $align={ALIGN.right}>
         <NavigationItem>
-          <Link href="#">Tab Link One</Link>
+          <StyledLink href="#">Tab Link One</StyledLink>
         </NavigationItem>
         <NavigationItem>
-          <Link href="#">Tab Link Two</Link>
+          <StyledLink href="#">Tab Link Two</StyledLink>
         </NavigationItem>
       </NavigationList>
       <NavigationList $align={ALIGN.right}>
         <NavigationItem>
-          <Button>Get started</Button>
+          <Button><Link to="/login">Login</Link></Button>
         </NavigationItem>
       </NavigationList>
     </HeaderNavigation>

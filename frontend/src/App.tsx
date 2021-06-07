@@ -1,68 +1,72 @@
 import React from 'react';
-import './App.css';
-import LoginForm from './components/LoginForm';
-import Nav from './components/Nav';
-import { useStyletron } from 'baseui';
+import {
+  BrowserRouter as Router,
+  Switch,
+  Route,
+  Link
+} from "react-router-dom";
+import Login from "./pages/Login";
 import bg from './assests/jezael-melgoza.jpg';
-import {Cell, Grid} from "baseui/layout-grid";
-import {H2} from "baseui/typography";
+import Nav from "./components/Nav";
+import {useStyletron} from "baseui";
 
-
-function App() {
+const App: React.FC = () => {
   const [css] = useStyletron();
   return (
-    <div
-      className={css({
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'flex-start',
-        height: '100vh',
-        backgroundImage: `url(${bg})`
-      })}
-    >
-      <header className={css({
+    <Router>
+      <div
+        className={css({
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'flex-start',
+          height: '100vh',
+          backgroundImage: `url(${bg})`
+        })}
+      >
+        <header className={css({
           width: '100%',
           backgroundColor: '#fff'
-      })}>
+        })}>
           <Nav/>
-      </header>
-      <Grid
-        overrides={{
-          Grid: {
-            style: (_) => ({
-              width: '100%',
-              display: 'flex',
-              flexGrow: 1,
-              alignItems: 'center'
-            })
-          }
-        }}
-      >
-        <Cell
-          span={[0, 4, 8]}
-          overrides={{
-            Cell: {
-              style: (_) => ({
-                textAlign: 'center'
-              })
-            }
-          }}
-        >
-          <H2>Welcome back!</H2>
-        </Cell>
-        <Cell span={4}>
-          <LoginForm/>
-        </Cell>
-      </Grid>
-      <footer className={css({
-        height: '120px',
-        backgroundColor: '#666'
-      })}>
+        </header>
 
-      </footer>
-    </div>
+        {/* A <Switch> looks through its children <Route>s and
+            renders the first one that matches the current URL. */}
+        <Switch>
+          <Route path="/login">
+            <Login />
+          </Route>
+          <Route path="/users">
+            <Users />
+          </Route>
+          <Route path="/">
+            <Home />
+          </Route>
+        </Switch>
 
+        <footer className={css({
+          height: '120px',
+          backgroundColor: '#666'
+        })}>
+
+        </footer>
+
+
+      </div>
+    </Router>
   );
+}
+
+function Home() {
+  return <h2>Home</h2>;
+}
+
+function About() {
+  return <h2>About</h2>;
+}
+
+function Users() {
+  return <h2>Users</h2>;
 }
 
 export default App;
