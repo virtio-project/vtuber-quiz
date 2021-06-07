@@ -4,6 +4,7 @@ import { Input } from 'baseui/input';
 import { Button } from 'baseui/button';
 import { Captcha } from './Captcha';
 import HCaptcha from '@hcaptcha/react-hcaptcha';
+import {useStyletron} from "baseui";
 
 const LoginForm: React.FC = () => {
   const [username, setUsername] = React.useState<string | null>(null);
@@ -12,6 +13,7 @@ const LoginForm: React.FC = () => {
   const [usernameErr, setUsernameErr] = React.useState(false);
   const [passwordErr, setPasswordErr] = React.useState(false);
   const captchaRef = React.useRef<HCaptcha>(null);
+  const [css] = useStyletron();
 
   const onSubmit = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
@@ -29,7 +31,10 @@ const LoginForm: React.FC = () => {
   };
 
   return (
-    <form>
+    <form className={css({
+        width: '300px',
+        margin: '0 auto'
+    })}>
       <FormControl>
         <Input
           placeholder="用户名"

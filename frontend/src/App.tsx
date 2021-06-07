@@ -4,6 +4,8 @@ import LoginForm from './components/LoginForm';
 import Nav from './components/Nav';
 import { useStyletron } from 'baseui';
 import bg from './assests/jezael-melgoza.jpg';
+import {Cell, Grid} from "baseui/layout-grid";
+import {H2} from "baseui/typography";
 
 
 function App() {
@@ -15,35 +17,46 @@ function App() {
         flexDirection: 'column',
         alignItems: 'flex-start',
         height: '100vh',
+        backgroundImage: `url(${bg})`
       })}
     >
-      <header className={css({ width: '100%' })}><Nav/></header>
-      <main
-        className={css({
-          display: 'flex',
+      <header className={css({
           width: '100%',
-          marginTop: 'scale800',
-          flexGrow: 1,
-          flexWrap: 'nowrap',
-          alignItems: 'center',
-          justifyContent: 'flex-end',
-          backgroundImage: `url(${bg})`,
-        })}
+          backgroundColor: '#fff'
+      })}>
+          <Nav/>
+      </header>
+      <Grid
+        overrides={{
+          Grid: {
+            style: (_) => ({
+              width: '100%',
+              display: 'flex',
+              flexGrow: 1,
+              alignItems: 'center'
+            })
+          }
+        }}
       >
-        <section/>
-        <section
-          className={css({
-            marginRight: '100px',
-            width: '300px',
-            height: '350px',
-            contain: 'strict',
-          })}
+        <Cell
+          span={[0, 4, 8]}
+          overrides={{
+            Cell: {
+              style: (_) => ({
+                textAlign: 'center'
+              })
+            }
+          }}
         >
+          <H2>Welcome back!</H2>
+        </Cell>
+        <Cell span={4}>
           <LoginForm/>
-        </section>
-      </main>
+        </Cell>
+      </Grid>
       <footer className={css({
-        height: '150px'
+        height: '120px',
+        backgroundColor: '#666'
       })}>
 
       </footer>
