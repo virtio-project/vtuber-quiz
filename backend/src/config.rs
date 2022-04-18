@@ -1,4 +1,6 @@
-use actix_session::CookieSession;
+use actix_session::storage::CookieSessionStore;
+use actix_session::SessionMiddleware;
+use actix_web::cookie::Key;
 use serde::Deserialize;
 use sqlx::postgres::PgConnectOptions;
 use std::{env, fs};
@@ -73,14 +75,15 @@ impl From<&Database> for PgConnectOptions {
     }
 }
 
-impl From<&Cookie> for CookieSession {
-    fn from(c: &Cookie) -> Self {
-        let key = base64::decode(&c.key).unwrap();
-        CookieSession::private(&key)
-            .domain(c.domain.as_str())
-            .name(c.name.as_str())
-            .path(c.path.as_str())
-            .secure(c.secure)
+impl Cookie {
+    pub fn session_middleware(&self) -> SessionMiddleware<CookieSessionStore> {
+        let key = Key::from(&base64::decode(&self.key).unwrap());
+        SessionMiddleware::builder(CookieSessionStore::default(), key)
+            .cookie_domain(Some(self.domain.clone()))
+            .cookie_name(self.name.clone())
+            .cookie_path(self.path.clone())
+            .cookie_secure(self.secure)
+            .build()
     }
 }
 

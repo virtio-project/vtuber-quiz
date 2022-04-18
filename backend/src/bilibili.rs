@@ -1,14 +1,13 @@
 use std::fmt;
 
-use serde::{Serialize, Deserializer, Deserialize};
 use reqwest::get;
-
+use serde::{Deserialize, Deserializer, Serialize};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 struct Response<T> {
     code: i32,
     message: String,
-    data: Option<T>
+    data: Option<T>,
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -46,7 +45,7 @@ pub struct PostInfo {
     pub content: String,
 }
 
-impl <T> Response<T> {
+impl<T> Response<T> {
     fn success(&self) -> bool {
         self.code == 0
     }
@@ -58,7 +57,10 @@ impl <T> Response<T> {
 
 impl AccountInfo {
     async fn get_by_id(uid: u64) -> Result<Self, Error> {
-        let url = format!("https://api.bilibili.com/x/space/acc/info?mid={}&jsonp=jsonp", uid);
+        let url = format!(
+            "https://api.bilibili.com/x/space/acc/info?mid={}&jsonp=jsonp",
+            uid
+        );
         let response: Response<Self> = get(url).await?.json().await?;
         if response.success() {
             Ok(response.data.unwrap())
@@ -76,9 +78,7 @@ impl PostInfo {
             return Err(response.into_error().into());
         }
         let data = response.data.unwrap();
-        let inner = data
-            .get("card")
-            .ok_or(Error::UnexpectedResponse)?;
+        let inner = data.get("card").ok_or(Error::UnexpectedResponse)?;
         let card = inner
             .get("card")
             .and_then(|v| v.as_str())
@@ -103,7 +103,7 @@ impl PostInfo {
         Ok(Self {
             sender,
             rid,
-            content
+            content,
         })
     }
 }
@@ -118,7 +118,7 @@ impl Error {
     }
 }
 
-impl <T> From<Response<T>> for BilbiliError {
+impl<T> From<Response<T>> for BilbiliError {
     fn from(r: Response<T>) -> Self {
         Self {
             code: r.code,
@@ -134,8 +134,8 @@ impl fmt::Display for BilbiliError {
 }
 
 fn from_u8<'de, D>(deserializer: D) -> Result<bool, D::Error>
-    where
-        D: Deserializer<'de>,
+where
+    D: Deserializer<'de>,
 {
     let s: u8 = Deserialize::deserialize(deserializer)?;
     if s == 0 {
@@ -159,7 +159,10 @@ mod tests {
 
     #[tokio::test]
     async fn test_get_account_info_err() {
-        let err = AccountInfo::get_by_id(1000000000).await.unwrap_err().unwrap_bilibili();
+        let err = AccountInfo::get_by_id(1000000000)
+            .await
+            .unwrap_err()
+            .unwrap_bilibili();
         assert_eq!(err.code, -404);
     }
 

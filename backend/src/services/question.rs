@@ -1,5 +1,5 @@
 use actix_session::Session;
-use actix_web::{get, post, put, delete, web};
+use actix_web::{delete, get, post, put, web};
 use actix_web::{HttpResponse, Result};
 use sqlx::PgPool;
 use vtuber_quiz_commons::models::*;
@@ -15,16 +15,17 @@ pub async fn create_question(
     session: Session,
     _hcaptcha: Hcaptcha,
 ) -> Result<HttpResponse> {
-    let creator = session.get::<i32>("user").ok().flatten().ok_or(Error::InvalidCredential)?;
+    let creator = session
+        .get::<i32>("user")
+        .ok()
+        .flatten()
+        .ok_or(Error::InvalidCredential)?;
     let qid = db::create_question(&pool, creator, req.into_inner()).await?;
     Ok(HttpResponse::Ok().json(db::get_question(&pool, qid).await?))
 }
 
 #[get("/question/{qid}")]
-pub async fn get_question(
-    qid: web::Path<i32>,
-    pool: web::Data<PgPool>,
-) -> Result<HttpResponse> {
+pub async fn get_question(qid: web::Path<i32>, pool: web::Data<PgPool>) -> Result<HttpResponse> {
     let question = db::get_question(&pool, *qid).await?;
     if question.deleted {
         Ok(HttpResponse::NotFound().finish())
@@ -39,7 +40,11 @@ pub async fn delete_question(
     pool: web::Data<PgPool>,
     session: Session,
 ) -> Result<HttpResponse> {
-    let user = session.get::<i32>("user").ok().flatten().ok_or(Error::InvalidCredential)?;
+    let user = session
+        .get::<i32>("user")
+        .ok()
+        .flatten()
+        .ok_or(Error::InvalidCredential)?;
     let question = db::get_question(&pool, *qid).await?;
     if question.creator == user {
         db::delete_question(&pool, *qid).await?;
@@ -70,7 +75,11 @@ pub async fn update_question(
     pool: web::Data<PgPool>,
     session: Session,
 ) -> Result<HttpResponse> {
-    let user = session.get::<i32>("user").ok().flatten().ok_or(Error::InvalidCredential)?;
+    let user = session
+        .get::<i32>("user")
+        .ok()
+        .flatten()
+        .ok_or(Error::InvalidCredential)?;
     let question = req.into_inner();
     if *qid != question.id || !question.is_valid() {
         return Ok(HttpResponse::BadRequest().finish());
@@ -89,7 +98,11 @@ pub async fn apply_question_to_vtuber(
     pool: web::Data<PgPool>,
     session: Session,
 ) -> Result<HttpResponse> {
-    let user = session.get::<i32>("user").ok().flatten().ok_or(Error::InvalidCredential)?;
+    let user = session
+        .get::<i32>("user")
+        .ok()
+        .flatten()
+        .ok_or(Error::InvalidCredential)?;
     let (qid, uid) = path.into_inner();
     let question = db::get_question(&pool, qid).await?;
     if question.creator != user {
@@ -109,7 +122,11 @@ pub async fn remove_question_to_vtuber(
     pool: web::Data<PgPool>,
     session: Session,
 ) -> Result<HttpResponse> {
-    let user = session.get::<i32>("user").ok().flatten().ok_or(Error::InvalidCredential)?;
+    let user = session
+        .get::<i32>("user")
+        .ok()
+        .flatten()
+        .ok_or(Error::InvalidCredential)?;
     let (qid, uid) = path.into_inner();
     let question = db::get_question(&pool, qid).await?;
     if question.creator != user {
@@ -130,7 +147,7 @@ pub async fn get_question_applied(
 ) -> Result<HttpResponse> {
     let question = db::get_question(&pool, *qid).await?;
     if question.draft || question.deleted {
-        return Ok(HttpResponse::NotFound().finish())
+        return Ok(HttpResponse::NotFound().finish());
     }
     Ok(HttpResponse::Ok().json(db::get_question_applied(&pool, *qid).await))
 }

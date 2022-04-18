@@ -5,19 +5,19 @@ extern crate sqlx;
 
 use std::borrow::Borrow;
 
-use actix_session::CookieSession;
-use actix_web::{App, HttpServer, web};
 use actix_web::middleware::Logger;
+use actix_web::web::Data;
+use actix_web::{web, App, HttpServer};
 use sqlx::postgres::PgPoolOptions;
 
 use crate::config::Config;
 
+mod bilibili;
 mod config;
+mod db;
 mod error;
 mod hcaptcha;
 mod services;
-mod bilibili;
-mod db;
 
 #[actix_web::main]
 async fn main() -> anyhow::Result<()> {
@@ -33,9 +33,9 @@ async fn main() -> anyhow::Result<()> {
     HttpServer::new(move || {
         App::new()
             .wrap(Logger::default())
-            .wrap(CookieSession::from(&config_cloned.host.cookie))
-            .data(config_cloned.hcaptcha.clone())
-            .data(pool.clone())
+            .wrap(config_cloned.host.cookie.session_middleware())
+            .app_data(Data::new(config_cloned.hcaptcha.clone()))
+            .app_data(Data::new(pool.clone()))
             .service(
                 web::scope("/api")
                     .service(services::register)
@@ -51,7 +51,7 @@ async fn main() -> anyhow::Result<()> {
                     .service(services::apply_question_to_vtuber)
                     .service(services::remove_question_to_vtuber)
                     .service(services::get_question_applied)
-                    .service(services::vote_to_question)
+                    .service(services::vote_to_question),
             )
     })
     .bind(&config.host.bind)?

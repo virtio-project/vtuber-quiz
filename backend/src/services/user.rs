@@ -1,5 +1,5 @@
 use actix_session::Session;
-use actix_web::{get, post, delete, web};
+use actix_web::{delete, get, post, web};
 use actix_web::{HttpResponse, Result};
 use sqlx::PgPool;
 use vtuber_quiz_commons::models::*;
@@ -41,7 +41,11 @@ pub async fn follow_user(
     pool: web::Data<PgPool>,
     session: Session,
 ) -> Result<HttpResponse> {
-    let from = session.get::<i32>("user").ok().flatten().ok_or(Error::InvalidCredential)?;
+    let from = session
+        .get::<i32>("user")
+        .ok()
+        .flatten()
+        .ok_or(Error::InvalidCredential)?;
     db::follow(&pool, from, *id, req.private).await?;
     Ok(HttpResponse::NoContent().finish())
 }
@@ -52,17 +56,22 @@ pub async fn unfollow_user(
     pool: web::Data<PgPool>,
     session: Session,
 ) -> Result<HttpResponse> {
-    let from = session.get::<i32>("user").ok().flatten().ok_or(Error::InvalidCredential)?;
+    let from = session
+        .get::<i32>("user")
+        .ok()
+        .flatten()
+        .ok_or(Error::InvalidCredential)?;
     db::unfollow(&pool, from, *id).await?;
     Ok(HttpResponse::NoContent().finish())
 }
 
 #[get("/user/self")]
-pub async fn get_self(
-    pool: web::Data<PgPool>,
-    session: Session,
-) -> Result<HttpResponse> {
-    let id = session.get::<i32>("user").ok().flatten().ok_or(Error::InvalidCredential)?;
+pub async fn get_self(pool: web::Data<PgPool>, session: Session) -> Result<HttpResponse> {
+    let id = session
+        .get::<i32>("user")
+        .ok()
+        .flatten()
+        .ok_or(Error::InvalidCredential)?;
     let user = db::get_user_by_id(&pool, id).await?;
     Ok(HttpResponse::Ok().json(user))
 }
@@ -72,11 +81,14 @@ pub async fn create_challenge_code(
     pool: web::Data<PgPool>,
     session: Session,
 ) -> Result<HttpResponse> {
-    let id = session.get::<i32>("user").ok().flatten().ok_or(Error::InvalidCredential)?;
+    let id = session
+        .get::<i32>("user")
+        .ok()
+        .flatten()
+        .ok_or(Error::InvalidCredential)?;
     let challenge = db::create_or_replace_challenge(&pool, id).await?;
     Ok(HttpResponse::Ok().json(ChallengeResponse::new(challenge.as_str())))
 }
-
 
 #[post("/user/vote/{qid}/{action}")]
 pub async fn vote_to_question(
@@ -85,11 +97,15 @@ pub async fn vote_to_question(
     session: Session,
     _hcaptcha: Hcaptcha,
 ) -> Result<HttpResponse> {
-    let user = session.get::<i32>("user").ok().flatten().ok_or(Error::InvalidCredential)?;
+    let user = session
+        .get::<i32>("user")
+        .ok()
+        .flatten()
+        .ok_or(Error::InvalidCredential)?;
     let (qid, action) = path.into_inner();
     let question = db::get_question(&pool, qid).await?;
     if question.creator == user || question.draft || question.deleted {
-        return Ok(HttpResponse::BadRequest().finish())
+        return Ok(HttpResponse::BadRequest().finish());
     }
     if let Ok(action) = VoteAction::from_str(action.as_str()) {
         db::vote_to_question(&pool, user, qid, action).await?;

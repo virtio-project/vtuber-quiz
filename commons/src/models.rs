@@ -24,7 +24,7 @@ pub struct FollowRequest {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ChallengeResponse {
     pub code: String,
-    pub templates: Vec<String>
+    pub templates: Vec<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -63,7 +63,10 @@ pub struct MultiAnswerQuestion {
 }
 
 #[cfg_attr(feature = "backend", derive(sqlx::Type))]
-#[cfg_attr(feature = "backend", sqlx(type_name = "user_role", rename_all = "lowercase"))]
+#[cfg_attr(
+    feature = "backend",
+    sqlx(type_name = "user_role", rename_all = "lowercase")
+)]
 #[derive(Copy, Clone, Debug, Serialize, Deserialize, Eq, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub enum UserRole {
@@ -72,7 +75,10 @@ pub enum UserRole {
 }
 
 #[cfg_attr(feature = "backend", derive(sqlx::Type))]
-#[cfg_attr(feature = "backend", sqlx(type_name = "question_type", rename_all = "snake_case"))]
+#[cfg_attr(
+    feature = "backend",
+    sqlx(type_name = "question_type", rename_all = "snake_case")
+)]
 #[derive(Copy, Clone, Debug, Serialize, Deserialize, Eq, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub enum QuestionType {
@@ -82,7 +88,10 @@ pub enum QuestionType {
 }
 
 #[cfg_attr(feature = "backend", derive(sqlx::Type))]
-#[cfg_attr(feature = "backend", sqlx(type_name = "vote_action", rename_all = "snake_case"))]
+#[cfg_attr(
+    feature = "backend",
+    sqlx(type_name = "vote_action", rename_all = "snake_case")
+)]
 #[derive(Copy, Clone, Debug, Serialize, Deserialize, Eq, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub enum VoteAction {
@@ -93,7 +102,10 @@ pub enum VoteAction {
 }
 
 #[cfg_attr(feature = "backend", derive(sqlx::Type))]
-#[cfg_attr(feature = "backend", sqlx(type_name = "audience", rename_all = "lowercase"))]
+#[cfg_attr(
+    feature = "backend",
+    sqlx(type_name = "audience", rename_all = "lowercase")
+)]
 #[derive(Copy, Clone, Debug, Serialize, Deserialize, Eq, PartialEq, Hash)]
 #[serde(rename_all = "lowercase")]
 pub enum Audience {
@@ -203,7 +215,13 @@ impl QuestionContent {
         use QuestionContent::*;
 
         match self {
-            TrueFalse(q) => if q.is_true { vec![0] } else { vec![1] },
+            TrueFalse(q) => {
+                if q.is_true {
+                    vec![0]
+                } else {
+                    vec![1]
+                }
+            }
             MultiChoice(q) => vec![q.answer as i32],
             MultiAnswer(q) => q.answer.iter().map(|u| *u as i32).collect(),
         }
@@ -286,7 +304,7 @@ impl Question {
 
         TrueFalseQuestion {
             description: self.description.clone(),
-            is_true: self.answer[0] == 0
+            is_true: self.answer[0] == 0,
         }
     }
 
@@ -298,7 +316,7 @@ impl Question {
         MultiChoiceQuestion {
             description: self.description.clone(),
             choices: self.choices.clone(),
-            answer: self.answer[0] as usize
+            answer: self.answer[0] as usize,
         }
     }
 
@@ -310,12 +328,14 @@ impl Question {
         MultiAnswerQuestion {
             description: self.description.clone(),
             choices: self.choices.clone(),
-            answer: self.answer.iter().map(|i| *i as usize).collect()
+            answer: self.answer.iter().map(|i| *i as usize).collect(),
         }
     }
 }
 
-const fn default_false() -> bool { false }
+const fn default_false() -> bool {
+    false
+}
 
 #[cfg(test)]
 mod tests {
@@ -327,7 +347,10 @@ mod tests {
 
         assert_eq!(VoteAction::from_str("up_vote").unwrap(), UpVote);
         assert_eq!(VoteAction::from_str("down_vote").unwrap(), DownVote);
-        assert_eq!(VoteAction::from_str("flag_incorrect").unwrap(), FlagIncorrect);
+        assert_eq!(
+            VoteAction::from_str("flag_incorrect").unwrap(),
+            FlagIncorrect
+        );
         assert_eq!(VoteAction::from_str("flag_outdated").unwrap(), FlagOutdated);
 
         assert_eq!(UpVote.to_string().as_str(), "up_vote");
@@ -357,7 +380,10 @@ mod tests {
 }"#;
         let question: QuestionContent = serde_json::from_str(mc_json).unwrap();
         let multi_choice = question.unwrap_multi_choice();
-        assert_eq!(multi_choice.description.as_str(), "select a prime number from those numbers");
+        assert_eq!(
+            multi_choice.description.as_str(),
+            "select a prime number from those numbers"
+        );
         assert_eq!(multi_choice.choices.len(), 4);
         assert_eq!(multi_choice.answer, 1);
     }
@@ -371,7 +397,10 @@ mod tests {
 }"#;
         let question: QuestionContent = serde_json::from_str(ma_json).unwrap();
         let multi_answer = question.unwrap_multi_answer();
-        assert_eq!(multi_answer.description.as_str(), "select all words describe color");
+        assert_eq!(
+            multi_answer.description.as_str(),
+            "select all words describe color"
+        );
         assert_eq!(multi_answer.choices.len(), 4);
         assert_eq!(multi_answer.answer, vec![0, 1, 2]);
     }

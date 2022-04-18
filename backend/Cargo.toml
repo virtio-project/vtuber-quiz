@@ -8,15 +8,16 @@ edition = "2018"
 bypass-hcaptcha = []
 
 [dependencies]
-actix-http = "3.0.0-beta.6"
-actix-session = { git = "https://github.com/nhruo123/actix-extras.git", branch = "beta-6-patch" }
-actix-web = { version = "4.0.0-beta.6", features = [ "secure-cookies" ] }
+actix-files = "0.6"
+actix-http = "3.0"
+actix-session = { version = "0.6", features = ["cookie-session"] }
+actix-web = { version = "4.0", features = [ "secure-cookies" ] }
 anyhow = "1.0"
 base64 = "0.13"
 chrono = { version = "0.4", features = [ "serde" ] }
 dotenv = "0.15"
-futures = "0.3.15"
-futures-util = "0.3.15"
+futures = "0.3"
+futures-util = "0.3"
 hcaptcha = "1.0"
 log = "0.4"
 pretty_env_logger = "0.4"

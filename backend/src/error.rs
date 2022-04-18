@@ -1,7 +1,6 @@
-use actix_http::Response;
-use actix_web::body::Body;
-use actix_web::error;
+use actix_http::body::BoxBody;
 use actix_web::http::{header, StatusCode};
+use actix_web::{error, HttpResponse};
 use serde::Serialize;
 
 use Error::*;
@@ -19,7 +18,7 @@ pub enum Error {
     #[error("unauthorized")]
     InvalidCredential,
     #[error("not found")]
-    NotFound
+    NotFound,
 }
 
 #[derive(Clone, Debug, Serialize)]
@@ -68,21 +67,20 @@ impl error::ResponseError for Error {
         }
     }
 
-    fn error_response(&self) -> Response<Body> {
+    fn error_response(&self) -> HttpResponse {
         error!("{}", self);
-        let mut resp = Response::new(self.status_code());
-        resp.headers_mut().insert(
-            header::CONTENT_TYPE,
-            header::HeaderValue::from_static("application/json"),
-        );
         let body = serde_json::to_string(&self.as_display()).unwrap_or_else(|e| {
             error!("error occurred when generating error response: {}", e);
             r#"{"code":500000, "err":"internal server error"}"#.to_string()
         });
-        resp.set_body(Body::from(body))
+        let mut resp = HttpResponse::new(self.status_code()).set_body(BoxBody::new(body));
+        resp.headers_mut().insert(
+            header::CONTENT_TYPE,
+            header::HeaderValue::from_static("application/json"),
+        );
+        resp
     }
 }
-
 
 impl From<sqlx::Error> for Error {
     fn from(e: sqlx::Error) -> Self {

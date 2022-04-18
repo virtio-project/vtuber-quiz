@@ -24,7 +24,6 @@ pub enum HcaptchaError {
 }
 
 impl FromRequest for Hcaptcha {
-    type Config = ();
     type Error = Error;
     type Future = Pin<Box<dyn Future<Output = Result<Self, Self::Error>>>>;
 
