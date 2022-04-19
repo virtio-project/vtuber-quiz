@@ -1,40 +1,41 @@
 use chrono::serde::ts_milliseconds;
 use chrono::{DateTime, Utc};
+use paperclip::actix::Apiv2Schema;
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
 use std::str::FromStr;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Apiv2Schema)]
 pub struct RegRequest {
     pub username: String,
     pub password: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Apiv2Schema)]
 pub struct LoginRequest {
     pub password: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Apiv2Schema)]
 pub struct FollowRequest {
     #[serde(default = "default_false")]
     pub private: bool,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Apiv2Schema)]
 pub struct ChallengeResponse {
     pub code: String,
     pub templates: Vec<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Apiv2Schema)]
 pub struct QuestionCreationRequest {
     pub content: QuestionContent,
     pub audiences: HashSet<Audience>,
     pub draft: bool,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Apiv2Schema)]
 #[serde(untagged)]
 pub enum QuestionContent {
     TrueFalse(TrueFalseQuestion),
@@ -42,20 +43,20 @@ pub enum QuestionContent {
     MultiAnswer(MultiAnswerQuestion),
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Apiv2Schema)]
 pub struct TrueFalseQuestion {
     pub description: String,
     pub is_true: bool,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Apiv2Schema)]
 pub struct MultiChoiceQuestion {
     pub description: String,
     pub choices: Vec<String>,
     pub answer: usize,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Apiv2Schema)]
 pub struct MultiAnswerQuestion {
     pub description: String,
     pub choices: Vec<String>,
@@ -67,7 +68,7 @@ pub struct MultiAnswerQuestion {
     feature = "backend",
     sqlx(type_name = "user_role", rename_all = "lowercase")
 )]
-#[derive(Copy, Clone, Debug, Serialize, Deserialize, Eq, PartialEq)]
+#[derive(Copy, Clone, Debug, Serialize, Deserialize, Eq, PartialEq, Apiv2Schema)]
 #[serde(rename_all = "snake_case")]
 pub enum UserRole {
     Normal,
@@ -79,7 +80,7 @@ pub enum UserRole {
     feature = "backend",
     sqlx(type_name = "question_type", rename_all = "snake_case")
 )]
-#[derive(Copy, Clone, Debug, Serialize, Deserialize, Eq, PartialEq)]
+#[derive(Copy, Clone, Debug, Serialize, Deserialize, Eq, PartialEq, Apiv2Schema)]
 #[serde(rename_all = "snake_case")]
 pub enum QuestionType {
     TrueFalse,
@@ -92,7 +93,7 @@ pub enum QuestionType {
     feature = "backend",
     sqlx(type_name = "vote_action", rename_all = "snake_case")
 )]
-#[derive(Copy, Clone, Debug, Serialize, Deserialize, Eq, PartialEq)]
+#[derive(Copy, Clone, Debug, Serialize, Deserialize, Eq, PartialEq, Apiv2Schema)]
 #[serde(rename_all = "snake_case")]
 pub enum VoteAction {
     UpVote,
@@ -106,7 +107,7 @@ pub enum VoteAction {
     feature = "backend",
     sqlx(type_name = "audience", rename_all = "lowercase")
 )]
-#[derive(Copy, Clone, Debug, Serialize, Deserialize, Eq, PartialEq, Hash)]
+#[derive(Copy, Clone, Debug, Serialize, Deserialize, Eq, PartialEq, Hash, Apiv2Schema)]
 #[serde(rename_all = "lowercase")]
 pub enum Audience {
     Vtuber,
@@ -115,7 +116,7 @@ pub enum Audience {
 }
 
 #[cfg_attr(feature = "backend", derive(sqlx::FromRow))]
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, Apiv2Schema)]
 pub struct User {
     pub id: i32,
     pub username: String,
@@ -135,7 +136,7 @@ pub struct User {
 }
 
 #[cfg_attr(feature = "backend", derive(sqlx::FromRow))]
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, Apiv2Schema)]
 pub struct Question {
     pub id: i32,
     pub creator: i32,

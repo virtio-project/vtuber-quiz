@@ -1,6 +1,6 @@
 use actix_session::Session;
-use actix_web::{delete, get, post, web};
 use actix_web::{HttpResponse, Result};
+use paperclip::actix::{api_v2_operation, delete, get, post, web};
 use sqlx::PgPool;
 use vtuber_quiz_commons::models::*;
 
@@ -9,6 +9,7 @@ use crate::error::Error;
 use crate::hcaptcha::Hcaptcha;
 use std::str::FromStr;
 
+#[api_v2_operation]
 #[post("/user")]
 pub async fn register(
     req: web::Json<RegRequest>,
@@ -21,6 +22,7 @@ pub async fn register(
     Ok(HttpResponse::Ok().json(db::get_user_by_id(&pool, id).await?))
 }
 
+#[api_v2_operation]
 #[post("/user/{username}/session")]
 pub async fn login(
     username: web::Path<String>,
@@ -34,6 +36,7 @@ pub async fn login(
     Ok(HttpResponse::Ok().json(user))
 }
 
+#[api_v2_operation]
 #[post("/user/by-id/{id}/follow")]
 pub async fn follow_user(
     id: web::Path<i32>,
@@ -50,6 +53,7 @@ pub async fn follow_user(
     Ok(HttpResponse::NoContent().finish())
 }
 
+#[api_v2_operation]
 #[delete("/user/by-id/{id}/follow")]
 pub async fn unfollow_user(
     id: web::Path<i32>,
@@ -65,6 +69,7 @@ pub async fn unfollow_user(
     Ok(HttpResponse::NoContent().finish())
 }
 
+#[api_v2_operation]
 #[get("/user/self")]
 pub async fn get_self(pool: web::Data<PgPool>, session: Session) -> Result<HttpResponse> {
     let id = session
@@ -76,6 +81,7 @@ pub async fn get_self(pool: web::Data<PgPool>, session: Session) -> Result<HttpR
     Ok(HttpResponse::Ok().json(user))
 }
 
+#[api_v2_operation]
 #[post("/user/self/bilbili/verify_code")]
 pub async fn create_challenge_code(
     pool: web::Data<PgPool>,
@@ -90,6 +96,7 @@ pub async fn create_challenge_code(
     Ok(HttpResponse::Ok().json(ChallengeResponse::new(challenge.as_str())))
 }
 
+#[api_v2_operation]
 #[post("/user/vote/{qid}/{action}")]
 pub async fn vote_to_question(
     path: web::Path<(i32, String)>,

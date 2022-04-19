@@ -6,9 +6,17 @@ use std::str::FromStr;
 use actix_web::dev::Payload;
 use actix_web::web::Data;
 use actix_web::{FromRequest, HttpRequest};
+use paperclip::actix::Apiv2Security;
 
 use crate::error::Error;
 
+#[derive(Apiv2Security)]
+#[openapi(
+    apiKey,
+    in = "header",
+    name = "Hcaptcha",
+    description = "HCaptcha challenge response"
+)]
 pub struct Hcaptcha {
     _private: (),
 }

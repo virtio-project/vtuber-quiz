@@ -1,6 +1,7 @@
 use actix_session::Session;
-use actix_web::{delete, get, post, put, web};
+// use actix_web::{delete, get, post, put};
 use actix_web::{HttpResponse, Result};
+use paperclip::actix::{delete, get, post, put, api_v2_operation, web};
 use sqlx::PgPool;
 use vtuber_quiz_commons::models::*;
 
@@ -8,6 +9,14 @@ use crate::db;
 use crate::error::Error;
 use crate::hcaptcha::Hcaptcha;
 
+#[api_v2_operation(
+    summary = "Create question",
+    description = "It creates a question",
+    operation_id = "create_question",
+    consumes = "application/json",
+    produces = "application/json",
+    tags(Cats, Dogs, "Api reference"),
+)]
 #[post("/question")]
 pub async fn create_question(
     req: web::Json<QuestionCreationRequest>,
@@ -24,6 +33,7 @@ pub async fn create_question(
     Ok(HttpResponse::Ok().json(db::get_question(&pool, qid).await?))
 }
 
+#[api_v2_operation]
 #[get("/question/{qid}")]
 pub async fn get_question(qid: web::Path<i32>, pool: web::Data<PgPool>) -> Result<HttpResponse> {
     let question = db::get_question(&pool, *qid).await?;
@@ -34,6 +44,7 @@ pub async fn get_question(qid: web::Path<i32>, pool: web::Data<PgPool>) -> Resul
     }
 }
 
+#[api_v2_operation]
 #[delete("/question/{qid}")]
 pub async fn delete_question(
     qid: web::Path<i32>,
@@ -68,6 +79,7 @@ pub async fn delete_question(
 /// - created
 /// Fields that will be overwritten by update:
 /// - updated
+#[api_v2_operation]
 #[put("/question/{qid}")]
 pub async fn update_question(
     req: web::Json<Question>,
@@ -92,6 +104,7 @@ pub async fn update_question(
     Ok(HttpResponse::Ok().json(db::get_question(&pool, *qid).await?))
 }
 
+#[api_v2_operation]
 #[post("/question/{qid}/apply/{uid}")]
 pub async fn apply_question_to_vtuber(
     path: web::Path<(i32, i32)>,
@@ -116,6 +129,7 @@ pub async fn apply_question_to_vtuber(
     Ok(HttpResponse::NoContent().finish())
 }
 
+#[api_v2_operation]
 #[delete("/question/{qid}/apply/{uid}")]
 pub async fn remove_question_to_vtuber(
     path: web::Path<(i32, i32)>,
@@ -140,6 +154,7 @@ pub async fn remove_question_to_vtuber(
     Ok(HttpResponse::NoContent().finish())
 }
 
+#[api_v2_operation]
 #[get("/question/{qid}/apply")]
 pub async fn get_question_applied(
     qid: web::Path<i32>,

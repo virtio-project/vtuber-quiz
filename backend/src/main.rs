@@ -5,11 +5,10 @@ extern crate sqlx;
 
 use std::borrow::Borrow;
 
-use actix_files as fs;
-
 use actix_web::middleware::Logger;
 use actix_web::web::Data;
-use actix_web::{web, App, HttpServer};
+use actix_web::{App, HttpServer};
+use paperclip::actix::{web, OpenApiExt};
 use sqlx::postgres::PgPoolOptions;
 
 use crate::config::Config;
@@ -36,11 +35,11 @@ async fn main() -> anyhow::Result<()> {
         App::new()
             .wrap(Logger::default())
             .wrap(config_cloned.host.cookie.session_middleware())
-            .service(fs::Files::new("/swagger", "./public/swagger")
-                .index_file("index.html")
-            )
             .app_data(Data::new(config_cloned.hcaptcha.clone()))
             .app_data(Data::new(pool.clone()))
+            .wrap_api()
+            .with_json_spec_at("/api/spec/v2")
+            .with_swagger_ui_at("/api/docs")
             .service(
                 web::scope("/api")
                     .service(services::register)
@@ -58,6 +57,7 @@ async fn main() -> anyhow::Result<()> {
                     .service(services::get_question_applied)
                     .service(services::vote_to_question),
             )
+            .build()
     })
     .bind(&config.host.bind)?
     .run()

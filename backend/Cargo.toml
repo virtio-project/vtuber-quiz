@@ -8,9 +8,8 @@ edition = "2018"
 bypass-hcaptcha = []
 
 [dependencies]
-actix-files = "0.6"
 actix-http = "3.0"
-actix-session = { version = "0.6", features = ["cookie-session"] }
+actix-session = { version = "0.6", features = [ "cookie-session" ] }
 actix-web = { version = "4.0", features = [ "secure-cookies" ] }
 anyhow = "1.0"
 base64 = "0.13"
@@ -20,6 +19,7 @@ futures = "0.3"
 futures-util = "0.3"
 hcaptcha = "1.0"
 log = "0.4"
+paperclip = { version = "0.7", features = [ "actix4", "actix-session", "swagger-ui" ] }
 pretty_env_logger = "0.4"
 rand = "0.8"
 reqwest = { version = "0.11", features = [ "json" ] }
